@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : gpio.c
+  * File Name          : RTC.c
   * Description        : This file provides code for the configuration
-  *                      of all used GPIO pins.
+  *                      of the RTC instances.
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -48,83 +48,112 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "gpio.h"
+#include "rtc.h"
+
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
 
-/*----------------------------------------------------------------------------*/
-/* Configure GPIO                                                             */
-/*----------------------------------------------------------------------------*/
-/* USER CODE BEGIN 1 */
+RTC_HandleTypeDef hrtc;
 
-/* USER CODE END 1 */
-
-/** Configure pins as 
-        * Analog 
-        * Input 
-        * Output
-        * EVENT_OUT
-        * EXTI
-*/
-void MX_GPIO_Init(void)
+/* RTC init function */
+void MX_RTC_Init(void)
 {
+  RTC_TimeTypeDef sTime;
+  RTC_DateTypeDef sDate;
+  RTC_AlarmTypeDef sAlarm;
 
-  GPIO_InitTypeDef GPIO_InitStruct;
+    /**Initialize RTC Only 
+    */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_ALARMA;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**Initialize RTC and set the Time and Date 
+    */
+  sTime.Hours = 0;
+  sTime.Minutes = 0;
+  sTime.Seconds = 0;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  sDate.WeekDay = RTC_WEEKDAY_MONDAY;
+  sDate.Month = RTC_MONTH_JANUARY;
+  sDate.Date = 1;
+  sDate.Year = 0;
 
-  /*Configure GPIO pins : PCPin PCPin PCPin PCPin 
-                           PCPin PCPin PCPin PCPin 
-                           PCPin */
-  GPIO_InitStruct.Pin = PORT_4_PIN_0_Pin|PORT_4_PIN_1_Pin|PORT_4_PIN_2_Pin|PORT_4_PIN_3_Pin 
-                          |PORT_5_PIN_0_Pin|PORT_5_PIN_1_Pin|PORT_5_PIN_2_Pin|PORT_5_PIN_3_Pin 
-                          |PORT_3_PIN_1C8_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 
-  /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = LD2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PBPin PBPin PBPin PBPin 
-                           PBPin PBPin PBPin PBPin 
-                           PBPin PBPin PBPin PBPin 
-                           PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = PORT_0_PIN_0_Pin|PORT_0_PIN_1_Pin|PORT_0_PIN_2_Pin|PORT_2_PIN_2_Pin 
-                          |PORT_2_PIN_3_Pin|PORT_3_PIN_0_Pin|PORT_3_PIN_1_Pin|PORT_3_PIN_2_Pin 
-                          |PORT_0_PIN_3_Pin|PORT_1_PIN_0_Pin|PORT_1_PIN_1_Pin|PORT_1_PIN_2_Pin 
-                          |PORT_1_PIN_3_Pin|PORT_2_PIN_0_Pin|PORT_2_PIN_1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = TRIGGER_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(TRIGGER_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+    /**Enable the Alarm A 
+    */
+  sAlarm.AlarmTime.Hours = 0;
+  sAlarm.AlarmTime.Minutes = 0;
+  sAlarm.AlarmTime.Seconds = 1;
+  sAlarm.AlarmTime.SubSeconds = 0;
+  sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+  sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+  sAlarm.AlarmDateWeekDay = 1;
+  sAlarm.Alarm = RTC_ALARM_A;
+  if (HAL_RTC_SetAlarm(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 
 }
 
-/* USER CODE BEGIN 2 */
+void HAL_RTC_MspInit(RTC_HandleTypeDef* rtcHandle)
+{
 
-/* USER CODE END 2 */
+  if(rtcHandle->Instance==RTC)
+  {
+  /* USER CODE BEGIN RTC_MspInit 0 */
+
+  /* USER CODE END RTC_MspInit 0 */
+    /* RTC clock enable */
+    __HAL_RCC_RTC_ENABLE();
+  /* USER CODE BEGIN RTC_MspInit 1 */
+
+  /* USER CODE END RTC_MspInit 1 */
+  }
+}
+
+void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
+{
+
+  if(rtcHandle->Instance==RTC)
+  {
+  /* USER CODE BEGIN RTC_MspDeInit 0 */
+
+  /* USER CODE END RTC_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_RTC_DISABLE();
+  /* USER CODE BEGIN RTC_MspDeInit 1 */
+
+  /* USER CODE END RTC_MspDeInit 1 */
+  }
+} 
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
 
 /**
   * @}
