@@ -115,6 +115,24 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  static uint8_t state = 0;
+	  uint8_t yes[4] = {0x15, 0xfe, 0xfe, 0xfe};
+	  uint8_t no[4] = {0};
+	  HAL_Delay(2000);
+	  if(state)
+	  {
+	  	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+		  USBD_HID_SendReport(&hUsbDeviceFS, &yes, 4);
+		  state = 0;
+	  }
+	  else
+	  {
+	      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+		  USBD_HID_SendReport(&hUsbDeviceFS, &no, 4);
+		  state = 1;
+	  }
+
+
 
   /* USER CODE END WHILE */
 
