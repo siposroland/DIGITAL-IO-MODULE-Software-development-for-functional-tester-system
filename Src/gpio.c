@@ -145,10 +145,10 @@ void MX_GPIO_Init(void)
 /* USER CODE BEGIN 2 */
 uint8_t GPIO_Read_DIGITAL_IO(uint8_t port, uint8_t pin)
 {
-	volatile uint8_t szam = HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13);
-	volatile uint8_t szam2 = HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_8);
-	//return HAL_GPIO_ReadPin(gpio_digital_port[port][pin],gpio_digital_pin[port][pin]);
-	return szam2 + szam;
+	//volatile uint8_t szam = HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13);
+	//volatile uint8_t szam2 = HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_8);
+	return HAL_GPIO_ReadPin(gpio_digital_port[port][pin],gpio_digital_pin[port][pin]);
+	//return szam2 + szam;
 }
 
 
