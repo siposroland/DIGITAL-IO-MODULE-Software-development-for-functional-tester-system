@@ -108,7 +108,7 @@ void MX_GPIO_Init(void)
                           |PORT_5_PIN_0_Pin|PORT_5_PIN_1_Pin|PORT_5_PIN_2_Pin|PORT_5_PIN_3_Pin 
                           |PORT_3_PIN_3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
@@ -127,7 +127,7 @@ void MX_GPIO_Init(void)
                           |PORT_0_PIN_3_Pin|PORT_1_PIN_0_Pin|PORT_1_PIN_1_Pin|PORT_1_PIN_2_Pin 
                           |PORT_1_PIN_3_Pin|PORT_2_PIN_0_Pin|PORT_2_PIN_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
