@@ -72,7 +72,8 @@ void SystemClock_Config(void);
 /* Private function prototypes -----------------------------------------------*/
 
 /* USER CODE END PFP */
-
+uint8_t yes[4] = {0x15, 0xfe, 0xfe, 0xfe};
+uint8_t no[4] = {0};
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -118,8 +119,6 @@ int main(void)
   while (1)
   {
 	  static uint8_t state = 0;
-	  uint8_t yes[4] = {0x15, 0xfe, 0xfe, 0xfe};
-	  uint8_t no[4] = {0};
 	  HAL_Delay(2000);
 	  if(state)
 	  {
