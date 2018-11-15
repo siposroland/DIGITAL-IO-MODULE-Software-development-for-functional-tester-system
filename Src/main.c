@@ -111,7 +111,7 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-
+  USBD_HID_Digital_IO_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -120,8 +120,14 @@ int main(void)
   {
 	  static uint8_t state = 0;
 	  HAL_Delay(2000);
+
+	  USBD_HID_Digital_IO_Read();
+	  USBD_HID_Digital_IO_CreateReport(&yes);
+
+
 	  if(state)
 	  {
+		  USBD_HID_Digital_IO_CreateReport();
 	  	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 		  USBD_HID_SendReport(&hUsbDeviceFS, &yes, 4);
 		  state = 0;
