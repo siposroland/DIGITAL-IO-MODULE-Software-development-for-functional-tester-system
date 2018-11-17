@@ -50,7 +50,27 @@
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
 /* USER CODE BEGIN 0 */
+#include "usbd_digital_io.h"
 
+uint16_t gpio_digital_pin [DIGITAL_MAX_PORT_NUM]  [DIGITAL_MAX_PIN_NUM] =
+{
+	{PORT_0_PIN_0_Pin, PORT_0_PIN_1_Pin, PORT_0_PIN_2_Pin, PORT_0_PIN_3_Pin},
+	{PORT_1_PIN_0_Pin, PORT_1_PIN_1_Pin, PORT_1_PIN_2_Pin, PORT_1_PIN_3_Pin},
+	{PORT_2_PIN_0_Pin, PORT_2_PIN_1_Pin, PORT_2_PIN_2_Pin, PORT_2_PIN_3_Pin},
+	{PORT_3_PIN_0_Pin, PORT_3_PIN_1_Pin, PORT_3_PIN_2_Pin, PORT_3_PIN_3_Pin},
+	{PORT_4_PIN_0_Pin, PORT_4_PIN_1_Pin, PORT_4_PIN_2_Pin, PORT_4_PIN_3_Pin},
+	{PORT_5_PIN_0_Pin, PORT_5_PIN_1_Pin, PORT_5_PIN_2_Pin, PORT_5_PIN_3_Pin}
+};
+
+GPIO_TypeDef* gpio_digital_port [DIGITAL_MAX_PORT_NUM]  [DIGITAL_MAX_PIN_NUM] =
+{
+	{PORT_0_PIN_0_GPIO_Port, PORT_0_PIN_1_GPIO_Port, PORT_0_PIN_2_GPIO_Port, PORT_0_PIN_3_GPIO_Port},
+	{PORT_1_PIN_0_GPIO_Port, PORT_1_PIN_1_GPIO_Port, PORT_1_PIN_2_GPIO_Port, PORT_1_PIN_3_GPIO_Port},
+	{PORT_2_PIN_0_GPIO_Port, PORT_2_PIN_1_GPIO_Port, PORT_2_PIN_2_GPIO_Port, PORT_2_PIN_3_GPIO_Port},
+	{PORT_3_PIN_0_GPIO_Port, PORT_3_PIN_1_GPIO_Port, PORT_3_PIN_2_GPIO_Port, PORT_3_PIN_3_GPIO_Port},
+	{PORT_4_PIN_0_GPIO_Port, PORT_4_PIN_1_GPIO_Port, PORT_4_PIN_2_GPIO_Port, PORT_4_PIN_3_GPIO_Port},
+	{PORT_5_PIN_0_GPIO_Port, PORT_5_PIN_1_GPIO_Port, PORT_5_PIN_2_GPIO_Port, PORT_5_PIN_3_GPIO_Port}
+};
 /* USER CODE END 0 */
 
 /*----------------------------------------------------------------------------*/
@@ -81,6 +101,16 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pins : PCPin PCPin PCPin PCPin 
+                           PCPin PCPin PCPin PCPin 
+                           PCPin */
+  GPIO_InitStruct.Pin = PORT_4_PIN_0_Pin|PORT_4_PIN_1_Pin|PORT_4_PIN_2_Pin|PORT_4_PIN_3_Pin 
+                          |PORT_5_PIN_0_Pin|PORT_5_PIN_1_Pin|PORT_5_PIN_2_Pin|PORT_5_PIN_3_Pin 
+                          |PORT_3_PIN_3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -88,9 +118,39 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin 
+                           PBPin PBPin PBPin PBPin 
+                           PBPin PBPin PBPin PBPin 
+                           PBPin PBPin PBPin */
+  GPIO_InitStruct.Pin = PORT_0_PIN_0_Pin|PORT_0_PIN_1_Pin|PORT_0_PIN_2_Pin|PORT_2_PIN_2_Pin 
+                          |PORT_2_PIN_3_Pin|PORT_3_PIN_0_Pin|PORT_3_PIN_1_Pin|PORT_3_PIN_2_Pin 
+                          |PORT_0_PIN_3_Pin|PORT_1_PIN_0_Pin|PORT_1_PIN_1_Pin|PORT_1_PIN_2_Pin 
+                          |PORT_1_PIN_3_Pin|PORT_2_PIN_0_Pin|PORT_2_PIN_1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = TRIGGER_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(TRIGGER_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 }
 
 /* USER CODE BEGIN 2 */
+uint8_t GPIO_Read_DIGITAL_IO(uint8_t port, uint8_t pin)
+{
+	//volatile uint8_t szam = HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13);
+	//volatile uint8_t szam2 = HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_8);
+	return HAL_GPIO_ReadPin(gpio_digital_port[port][pin],gpio_digital_pin[port][pin]);
+	//return szam2 + szam;
+}
+
 
 /* USER CODE END 2 */
 

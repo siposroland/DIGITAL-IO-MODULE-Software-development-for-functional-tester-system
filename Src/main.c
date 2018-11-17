@@ -49,6 +49,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
+#include "rtc.h"
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
@@ -71,7 +72,8 @@ void SystemClock_Config(void);
 /* Private function prototypes -----------------------------------------------*/
 
 /* USER CODE END PFP */
-
+uint8_t yes[4] = {0x15, 0xfe, 0xfe, 0xfe};
+uint8_t no[4] = {0};
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -107,8 +109,9 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-
+  USBD_HID_Digital_IO_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -116,11 +119,15 @@ int main(void)
   while (1)
   {
 	  static uint8_t state = 0;
-	  uint8_t yes[4] = {0x15, 0xfe, 0xfe, 0xfe};
-	  uint8_t no[4] = {0};
 	  HAL_Delay(2000);
+
+	  USBD_HID_Digital_IO_Read();
+	  USBD_HID_Digital_IO_CreateReport(&yes);
+
+
 	  if(state)
 	  {
+		  USBD_HID_Digital_IO_CreateReport();
 	  	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 		  USBD_HID_SendReport(&hUsbDeviceFS, &yes, 4);
 		  state = 0;
@@ -152,6 +159,7 @@ void SystemClock_Config(void)
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
 
     /**Configure the main internal regulator output voltage 
     */
@@ -161,8 +169,9 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
@@ -184,6 +193,13 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
