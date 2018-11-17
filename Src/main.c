@@ -54,7 +54,6 @@
 #include "usb_device.h"
 #include "gpio.h"
 
-/* USER CODE BEGIN Includes */
 
 /* USER CODE BEGIN Includes */
 #include "usbd_customhid.h"
@@ -76,8 +75,8 @@ void SystemClock_Config(void);
 /* Private function prototypes -----------------------------------------------*/
 void USB_RX_Interrupt(void);
 /* USER CODE END PFP */
-uint8_t yes[4] = {0x15, 0xfe, 0xfe, 0xfe};
-uint8_t no[4] = {0};
+uint8_t input_report[11] = {0};
+uint8_t output_report[64] = {0};
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -126,20 +125,17 @@ int main(void)
 	  HAL_Delay(2000);
 
 	  USBD_HID_Digital_IO_Read();
-	  USBD_HID_Digital_IO_CreateReport(&yes);
-
+	  USBD_HID_Digital_IO_CreateReport((uint8_t*)&input_report);
+	  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
 
 	  if(state)
 	  {
-		  USBD_HID_Digital_IO_CreateReport();
 	  	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-		  USBD_HID_SendReport(&hUsbDeviceFS, &yes, 4);
 		  state = 0;
 	  }
 	  else
 	  {
 	      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-		  USBD_HID_SendReport(&hUsbDeviceFS, &no, 4);
 		  state = 1;
 	  }
 

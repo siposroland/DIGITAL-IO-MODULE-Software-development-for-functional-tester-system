@@ -25,7 +25,7 @@
   ******************************************************************************
   */
 /* Includes -------------------------------------*/
-#include "usbd_hid.h"
+#include "usbd_customhid.h"
 
 
 /* Defines -------------------------------------*/
@@ -61,10 +61,27 @@
 
  extern HID_DIGITAL_IO_TypeDef digital_io;
 
-//USBH_StatusTypeDef USBH_HID_Digital_IO_Init(USBH_HandleTypeDef *phost);
-//HID_DIGITAL_IO_Info_TypeDef *USBH_HID_Get_Digital_IO_Info(USBH_HandleTypeDef *phost);
-//USBH_StatusTypeDef USBH_HID_Mouse_DecodeData(USBH_HandleTypeDef *phost, HID_Report_ItemTypedef *parser_data, uint8_t *pData, uint16_t length);
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @param  phost: Host handle
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_Init();
 
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_CreateReport(uint8_t* report);
+
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_Read(void);
 
 #ifdef __cplusplus
 }

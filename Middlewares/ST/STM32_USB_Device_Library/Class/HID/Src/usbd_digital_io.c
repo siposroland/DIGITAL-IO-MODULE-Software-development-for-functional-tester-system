@@ -48,6 +48,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_digital_io.h"
+#include "gpio.h"
 
 /* Global ariables */
 HID_DIGITAL_IO_TypeDef digital_io;
@@ -128,7 +129,7 @@ void USBD_HID_Digital_IO_CreateReport(uint8_t* report)
   */
 void USBD_HID_Digital_IO_Read(void)
 {
-  uint8_t port_idx = 0, pin_idx = 0, offset = 0, report_num = 0;
+  uint8_t port_idx = 0, pin_idx = 0;
 
   // Step over all ports
   for(port_idx = 0; port_idx < DIGITAL_MAX_PORT_NUM; port_idx++)
