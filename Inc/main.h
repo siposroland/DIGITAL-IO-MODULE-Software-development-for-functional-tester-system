@@ -59,8 +59,6 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define RTC_PPS_Pin GPIO_PIN_13
-#define RTC_PPS_GPIO_Port GPIOC
 #define PORT_4_PIN_0_Pin GPIO_PIN_0
 #define PORT_4_PIN_0_GPIO_Port GPIOC
 #define PORT_4_PIN_1_Pin GPIO_PIN_1
