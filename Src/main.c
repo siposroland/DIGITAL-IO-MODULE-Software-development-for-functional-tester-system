@@ -56,8 +56,10 @@
 
 /* USER CODE BEGIN Includes */
 
+/* USER CODE BEGIN Includes */
 #include "usbd_customhid.h"
 #include "usbd_custom_hid_if.h"
+#include "usbd_digital_io.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -72,7 +74,7 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void USB_RX_Interrupt(void);
 /* USER CODE END PFP */
 uint8_t yes[4] = {0x15, 0xfe, 0xfe, 0xfe};
 uint8_t no[4] = {0};
@@ -219,6 +221,24 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void USB_RX_Interrupt(void)
+{
+	uint8_t i;
+	USBD_CUSTOM_HID_HandleTypeDef *myusb=(USBD_CUSTOM_HID_HandleTypeDef *)hUsbDeviceFS.pClassData;
+
+	//Clear arr
+	for(i=0;i<64;i++)
+	{
+		output_report[i]=0;
+	}
+
+	//myusb->Report_buf[0]= numbers of byte data
+	for(i=0;i<myusb->Report_buf[0];i++)
+	{
+		output_report[i]=myusb->Report_buf[i+1];
+	}
+}
 
 /* USER CODE END 4 */
 
