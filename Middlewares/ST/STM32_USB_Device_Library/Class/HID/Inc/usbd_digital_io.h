@@ -47,17 +47,22 @@
  typedef enum {
    UNCHANGED,
    CHANGED
- } Digital_IO_Change_Info;
+ } Digital_IO_Change_Flag;
+
+ typedef enum {
+	NO_REPORT,
+	SEND_REPORT
+ } Digital_IO_Report_Flag;
 
  typedef enum {
    NOPULL = 0, // all two bits are 0
-   PULLDOWN = 2, // only the second bit is 1
-   PULLUP = 4 // only the third bit is 1
+   PULLDOWN = 4, // only the second bit is 1
+   PULLUP = 8 // only the third bit is 1
  } Digital_IO_Pull_Info;
 
  typedef enum {
    INPUT = 0,
-   OUTPUT = 1
+   OUTPUT = 2
  } Digital_IO_Mode_Info;
 
  typedef enum {
@@ -92,8 +97,8 @@
 
  typedef struct _HID_DIGITAL_Port
    {
-	 Digital_IO_Change_Info	_changeIO;
-	 Digital_IO_Change_Info	_changePIN;
+	 Digital_IO_Change_Flag	_changeIO;
+	 Digital_IO_Change_Flag	_changePIN;
      uint8_t              	pin_enabled_size;
      uint8_t              	pins[DIGITAL_MAX_PIN_NUM];
      GPIO_InitTypeDef		gpio_settings;
@@ -110,6 +115,8 @@
  extern HID_DIGITAL_IO_TypeDef digital_io;
  extern HID_DIGITAL_IO_TypeDef digital_io_new_state;
  extern HID_Digital_IO_Trigger digital_io_trigger;
+ extern Digital_IO_Change_Flag digital_io_change_flag;
+ extern Digital_IO_Report_Flag digital_io_report_flag;
 
  /**
    * @brief  USBH_HID_Digital_IO_Init
@@ -117,7 +124,7 @@
    * @param  phost: Host handle
    * @retval USBH Status
    */
- void USBD_HID_Digital_IO_Init();
+ void USBD_HID_Digital_IO_Init(HID_DIGITAL_IO_TypeDef* digital_io_instance);
 
  /**
    * @brief  USBH_HID_Digital_IO_Init
@@ -156,6 +163,19 @@
    */
  void USBD_HID_Digital_IO_Reset_SwitchTrig(void);
 
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_SwitchPorts(void);
+
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_GPIO_Setup (uint8_t idx);
 
 #ifdef __cplusplus
 }

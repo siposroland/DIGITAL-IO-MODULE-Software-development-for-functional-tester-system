@@ -55,6 +55,8 @@
 HID_DIGITAL_IO_TypeDef digital_io;
 HID_DIGITAL_IO_TypeDef digital_io_new_state;
 HID_Digital_IO_Trigger digital_io_trigger;
+Digital_IO_Change_Flag digital_io_change_flag;
+Digital_IO_Report_Flag digital_io_report_flag;
 ORDERED_ARRAY digital_io_switch_buffer;
 
 /* Functions */
@@ -192,6 +194,7 @@ void USBD_HID_Digital_IO_Set_Changes(uint8_t* output_buff)
 	Digital_IO_Pull_Info temp_pull = NOPULL;
 	Digital_IO_Mode_Info temp_mode = INPUT;
 	uint8_t temp_pins = 0;
+	volatile Digital_IO_Change_Flag temp_change = UNCHANGED;
 
 	// Step over all ports (all ports have a byte in the output buffer, first four bytes for settings)
 	for(port_idx = 0; port_idx < DIGITAL_MAX_PORT_NUM; port_idx++)
