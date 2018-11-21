@@ -65,6 +65,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+//#define INNER_TEST (1U)
 
 /* USER CODE END PV */
 
@@ -75,10 +76,11 @@ void SystemClock_Config(void);
 /* Private function prototypes -----------------------------------------------*/
 void USB_RX_Interrupt(void);
 /* USER CODE END PFP */
+
+/* USER CODE BEGIN 0 */
 uint8_t input_report[11] = {1};
 uint8_t output_report[64] = {0};
-/* USER CODE BEGIN 0 */
-
+MAIN_STATE main_state = MAIN_STATE_NORMAL;
 /* USER CODE END 0 */
 
 /**
@@ -113,40 +115,63 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   MX_RTC_Init();
+
   /* USER CODE BEGIN 2 */
-  USBD_HID_Digital_IO_Init(digital_io);
-  USBD_HID_Digital_IO_Init(digital_io_new_state);
+  USBD_HID_Digital_IO_Init(&digital_io);
+  USBD_HID_Digital_IO_Init(&digital_io_new_state);
   USBD_HID_Digital_IO_Reset_SwitchTrig();
-  //HAL_Delay(10000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  static uint8_t state = 0;
-	  HAL_Delay(1000);
-
-	  USBD_HID_Digital_IO_Read();
-	  USBD_HID_Digital_IO_CreateReport((uint8_t*)&input_report);
-
-	  if(state)
-	  {
-	  	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-	  	  //uint8_t yes[11] = { 0xAA, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	if (main_state == MAIN_STATE_NORMAL)
+	{
+		// Create and send digital IO report
+		if (digital_io_report_flag == SEND_REPORT)
+		{
+		  USBD_HID_Digital_IO_Read();
+		  USBD_HID_Digital_IO_CreateReport((uint8_t*)&input_report);
 		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
-		  state = 1;
-	  }
-	  else
-	  {
-	      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-	  	  //uint8_t no[11] = { 0x11, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
-		  state = 0;
-	  }
+		  digital_io_report_flag = NO_REPORT;
+#ifdef	INNER_TEST
+		  digital_io_change_flag = CHANGED;
+#endif
+		}
 
+		// Store digital IO changes
+		if (digital_io_change_flag == CHANGED)
+		{
+			USBD_HID_Digital_IO_Init(&digital_io_new_state);
+#ifdef	INNER_TEST
+			output_report[0] = 0b11111011; // out, pullup, all high
+			output_report[1] = 0b10100011;
+			output_report[2] = 0b00001001;
+			output_report[3] = 0b00000000;
+			output_report[4] = 0b00000000;
+			output_report[5] = 0b00000000;
+#endif
+			USBD_HID_Digital_IO_Set_Changes(output_report);
+#ifdef	INNER_TEST
+			digital_io_trigger = TRIGGERED;
+#endif
+			digital_io_change_flag = UNCHANGED;
+		}
 
-
+		// Enforce settings of the pins
+		if (digital_io_trigger == TRIGGERED)
+		{
+			USBD_HID_Digital_IO_SwitchPorts();
+			USBD_HID_Digital_IO_Init(&digital_io_new_state);
+			USBD_HID_Digital_IO_Reset_SwitchTrig();
+			digital_io_trigger = DONTCARE;
+		}
+	}
+	if (main_state == MAIN_STATE_SYNC)
+	{
+		// TODO
+	}
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -257,7 +282,7 @@ void USB_RX_Interrupt(void)
 			// Handle sync method, disable other tasks
 			break;
 		case LENGTH_DIGITAL_IO:
-			USBD_HID_Digital_IO_Set_Changes(output_report);
+			digital_io_change_flag = CHANGED;
 			break;
 		case LENGTH_DATETIME:
 			// Handle date- and timestamp
@@ -266,6 +291,7 @@ void USB_RX_Interrupt(void)
 			break;
 	}
 
+	// Test answer
 	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 	input_report[1] = 1;
 	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
