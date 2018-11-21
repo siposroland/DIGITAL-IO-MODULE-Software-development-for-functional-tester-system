@@ -77,6 +77,7 @@
 
 
  extern HID_DIGITAL_IO_TypeDef digital_io;
+ extern HID_DIGITAL_IO_TypeDef digital_io_new_state;
 
  /**
    * @brief  USBH_HID_Digital_IO_Init

@@ -49,9 +49,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_digital_io.h"
 #include "gpio.h"
+#include "stm32f4xx_hal_gpio.h"
 
-/* Global ariables */
+/* Global variables */
 HID_DIGITAL_IO_TypeDef digital_io;
+HID_DIGITAL_IO_TypeDef digital_io_new_state;
 
 /* Functions */
 
@@ -174,6 +176,105 @@ void USBD_HID_Digital_IO_Read(void)
 		  digital_io.ports[port_idx].pins[pin_idx] = GPIO_Read_DIGITAL_IO(port_idx, pin_idx);
 	  }
   }
+}
+
+
+/**
+  * @brief  USBH_HID_Digital_IO_Init
+  *         The function init the HID digital IO.
+  * @retval USBH Status
+  */
+void USBD_HID_Digital_IO_Set_Changes(uint8_t* output_buff)
+{
+	uint8_t port_idx = 0, pin_idx = 0;
+	Digital_IO_Pull_Info temp_pull = NOPULL;
+	Digital_IO_Mode_Info temp_mode = INPUT;
+	uint8_t temp_pins = 0;
+
+	// Step over all ports (all ports have a byte in the output buffer, first four bytes for settings)
+	for(port_idx = 0; port_idx < DIGITAL_MAX_PORT_NUM; port_idx++)
+	{
+		// MODE: 1st bit in the byte contain IO direction (mask it)
+		temp_mode = (output_buff[port_idx] & 0x01);
+		digital_io_new_state.ports[port_idx].gpio_settings.Mode = (temp_mode == OUTPUT) ? GPIO_MODE_OUTPUT_PP : GPIO_MODE_INPUT;
+
+		// PULL: 2nd and 3nd bits in the byte together define pull type (mask these)
+		temp_pull = (output_buff[port_idx] & 0x06);
+		switch(temp_pull)
+		{
+			case NOPULL:
+				digital_io_new_state.ports[port_idx].gpio_settings.Pull = GPIO_NOPULL;
+				break;
+			case PULLDOWN:
+				digital_io_new_state.ports[port_idx].gpio_settings.Pull = GPIO_PULLDOWN;
+				break;
+			case PULLUP:
+				digital_io_new_state.ports[port_idx].gpio_settings.Pull = GPIO_PULLUP;
+				break;
+			default:
+				digital_io_new_state.ports[port_idx].gpio_settings.Pull = GPIO_NOPULL;
+				break;
+		} // switch (pull)
+
+		// Update _changeIO flag based on PULL and MODE settings
+		if ( digital_io_new_state.ports[port_idx].gpio_settings.Mode != digital_io.ports[port_idx].gpio_settings.Mode ||
+			 digital_io_new_state.ports[port_idx].gpio_settings.Pull != digital_io.ports[port_idx].gpio_settings.Pull )
+		{
+			digital_io_new_state.ports[port_idx]._changeIO = CHANGED;
+
+			// Add OUT -> IN higher priority than IN -> OUT (avoid to connecting two outputs together)
+			if (digital_io_new_state.ports[port_idx].gpio_settings.Mode == GPIO_MODE_OUTPUT_PP)
+			{
+				digital_io_switch_buffer.array[digital_io_switch_buffer.tail_idx] = port_idx;
+			}
+			else
+			{
+				digital_io_switch_buffer.array[digital_io_switch_buffer.head_idx] = port_idx;
+			}
+		} // if (_changeIO)
+		else
+		{
+			digital_io_new_state.ports[port_idx]._changeIO = UNCHANGED;
+		} // else (_changeIO)
+
+
+		// Set values only OUTPUT ports
+		if (temp_mode == OUTPUT)
+		{
+			// Read pin values and shift down these (all ports have a byte in the output buffer, last four bytes for values)
+			temp_pins = (output_buff[port_idx] & (0x10 | 0x20 | 0x40 | 0x80)) >> 4;
+
+			// Step over all pins
+			for (pin_idx = 0; pin_idx < DIGITAL_MAX_PIN_NUM; pin_idx++)
+			{
+				// Mask actual pin values
+				digital_io_new_state.ports[port_idx].pins[pin_idx] = (temp_pins & (1 << pin_idx));
+
+				// Update _changePIN flag based on pin values and _changeIO state (true, when old is INPUT or (OUTPUT and pin values different))
+				if (
+						(
+							(digital_io_new_state.ports[port_idx].pins[pin_idx] != digital_io.ports[port_idx].pins[pin_idx]) &&
+							(digital_io_new_state.ports[port_idx]._changeIO == UNCHANGED)
+						)
+						||  (digital_io_new_state.ports[port_idx]._changeIO == CHANGED)
+					)
+				{
+					digital_io_new_state.ports[port_idx]._changePIN = CHANGED;
+				} // if (_changePIN)
+				else
+				{
+					digital_io_new_state.ports[port_idx]._changePIN = UNCHANGED;
+				} // else (_changePIN)
+			}
+		}
+		// The _changePIN flag may different if the previous setting was OUTPUT
+		else
+		{
+			digital_io_new_state.ports[port_idx]._changePIN = UNCHANGED;
+		}// if (pin)
+
+	} // for (ports)
+}
 
 }
 
