@@ -61,19 +61,55 @@ HID_DIGITAL_IO_TypeDef digital_io;
   * @param  phost: Host handle
   * @retval USBH Status
   */
-void USBD_HID_Digital_IO_Init()
+void USBD_HID_Digital_IO_Init(HID_DIGITAL_IO_TypeDef digital_io_instance)
 {
-  uint8_t i = 0, j = 0;
+  uint8_t port_idx = 0, pin_idx = 0;
 
   // Initialize default values
-  digital_io.port_enabled_size = DIGITAL_MAX_PORT_NUM;
-  for(i = 0; i < DIGITAL_MAX_PORT_NUM; i++)
+  digital_io_instance.port_enabled_size = DIGITAL_MAX_PORT_NUM;
+
+  // Step over all ports
+  for(port_idx = 0; port_idx < DIGITAL_MAX_PORT_NUM; port_idx++)
   {
-	  digital_io.ports[i].pin_enabled_size = DIGITAL_MAX_PIN_NUM;
-	  digital_io.ports[i].direction = DIGITAL_PIN_INPUT;
-	  for (j = 0; j < DIGITAL_MAX_PIN_NUM; j++){
-		  digital_io.ports[i].pins[j] = DIGITAL_PIN_LOW;
+	  // Add default gpio settings
+	  digital_io_instance.ports[port_idx].gpio_settings.Mode = GPIO_MODE_OUTPUT_PP;
+	  digital_io_instance.ports[port_idx].gpio_settings.Pull = GPIO_PULLDOWN;
+	  digital_io_instance.ports[port_idx].gpio_settings.Pin = 0;
+
+	  // Add default number and change state
+	  digital_io_instance.ports[port_idx].pin_enabled_size = DIGITAL_MAX_PIN_NUM;
+	  digital_io_instance.ports[port_idx]._changeIO = UNCHANGED;
+	  digital_io_instance.ports[port_idx]._changePIN = UNCHANGED;
+
+	  // Set pin specific default values
+	  for (pin_idx = 0; pin_idx < DIGITAL_MAX_PIN_NUM; pin_idx++){
+		  digital_io_instance.ports[port_idx].pins[pin_idx] = DIGITAL_PIN_LOW;
+		  digital_io_instance.ports[port_idx].gpio_settings.Pin |= gpio_digital_pin[port_idx][pin_idx];
 	  }
+  }
+}
+
+/**
+  * @brief  USBH_HID_Digital_IO_Init
+  *         The function init the HID digital IO.
+  * @param  phost: Host handle
+  * @retval USBH Status
+  */
+void USBD_HID_Digital_IO_Reset_SwitchTrig(void)
+{
+  uint8_t port_idx = 0;
+
+  // Reset switch buffer
+  digital_io_switch_buffer.head_idx = 0;
+  digital_io_switch_buffer.tail_idx = (DIGITAL_MAX_PORT_NUM - 1);
+
+  // Unset trigger
+  digital_io_trigger = DONTCARE;
+
+  for(port_idx = 0; port_idx < DIGITAL_MAX_PORT_NUM; port_idx++)
+  {
+	  // Fill switch buffer
+	  digital_io_switch_buffer.array[port_idx] = PORT_UNUSED;
   }
 }
 
@@ -98,7 +134,7 @@ void USBD_HID_Digital_IO_CreateReport(uint8_t* report)
 	  // Add IO directions to the report
 	  // FORMAT: 1 byte (2 last bit reserved)
 	  // XX543210, when 0...5 indicate the direction of the numbered ports
-	  report[0] += (digital_io.ports[port_idx].direction << port_idx);
+	  report[0] += (digital_io.ports[port_idx].gpio_settings.Mode << port_idx);
 
 	  // Select actual report and add offset
 	  if ((port_idx % 2) == 0)
