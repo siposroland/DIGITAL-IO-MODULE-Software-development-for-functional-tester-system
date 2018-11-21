@@ -295,6 +295,51 @@ void USBD_HID_Digital_IO_Trigger (uint8_t* output_buff)
 	}
 }
 
-}
+/**
+  * @brief  USBH_HID_Digital_IO_Init
+  *         The function init the HID digital IO.
+  * @retval USBH Status
+  */
+void USBD_HID_Digital_IO_SwitchPorts (void)
+{
+	uint8_t port_idx = 0, pin_idx = 0;
+	// Copy changes to the digital IO instance
+	digital_io = digital_io_new_state;
 
+	// Set changes physically
+
+	// Fist step: OUT -> IN changes
+	while(digital_io_switch_buffer.head_idx != 0)
+	{
+		HAL_GPIO_Init (
+				gpio_digital_port[digital_io_switch_buffer.array[digital_io_switch_buffer.head_idx]][0],
+				&digital_io.ports[digital_io_switch_buffer.head_idx].gpio_settings );
+		digital_io_switch_buffer.head_idx --;
+	}
+
+	// Second step: IN -> OUT changes
+	while(digital_io_switch_buffer.tail_idx != (DIGITAL_MAX_PORT_NUM - 1))
+	{
+		HAL_GPIO_Init (
+				gpio_digital_port[digital_io_switch_buffer.array[digital_io_switch_buffer.tail_idx]][0],
+				&digital_io.ports[digital_io_switch_buffer.tail_idx].gpio_settings );
+		digital_io_switch_buffer.tail_idx ++;
+	}
+
+	// Third step: set/unset gpio values
+	for (port_idx = 0; port_idx < DIGITAL_MAX_PORT_NUM; port_idx ++)
+	{
+		if(digital_io.ports[port_idx]._changePIN == CHANGED)
+		{
+			for (pin_idx = 0; pin_idx < DIGITAL_MAX_PIN_NUM; pin_idx ++)
+			{
+				GPIO_Write_DIGITAL_IO(port_idx, pin_idx, digital_io.ports[port_idx].pins[pin_idx]);
+			}
+		}
+	}
+
+	// Finish with reset the worn out buffers
+	USBD_HID_Digital_IO_Init(digital_io_new_state);
+	USBD_HID_Digital_IO_Reset_SwitchTrig();
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
