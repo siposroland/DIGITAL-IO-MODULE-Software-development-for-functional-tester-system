@@ -72,6 +72,7 @@ void MX_GPIO_Init(void);
 /* USER CODE BEGIN Prototypes */
 uint8_t GPIO_Read_DIGITAL_IO(uint8_t port, uint8_t pin);
 void GPIO_Write_DIGITAL_IO(uint8_t port, uint8_t pin, GPIO_PinState value);
+void GPIO_Toggle_LED(void);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
