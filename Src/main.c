@@ -116,6 +116,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   USBD_HID_Digital_IO_Init(digital_io);
   USBD_HID_Digital_IO_Init(digital_io_new_state);
+  USBD_HID_Digital_IO_Reset_SwitchTrig();
   //HAL_Delay(10000);
   /* USER CODE END 2 */
 
@@ -226,6 +227,7 @@ void SystemClock_Config(void)
 void USB_RX_Interrupt(void)
 {
 	uint8_t i;
+	HID_Digital_IO_Output length = LENGTH_NOTHING;
 	USBD_CUSTOM_HID_HandleTypeDef *myusb=(USBD_CUSTOM_HID_HandleTypeDef *)hUsbDeviceFS.pClassData;
 
 	//Clear arr
@@ -234,11 +236,39 @@ void USB_RX_Interrupt(void)
 		output_report[i]=0;
 	}
 
-	//myusb->Report_buf[0]= numbers of byte data
-	for(i=0;i<myusb->Report_buf[0];i++)
+	// First byte contains numbers of datas in byte length
+	length = myusb->Report_buf[0];
+
+	// Copy the output report
+	for( i = 0; i < length; i++ )
 	{
 		output_report[i]=myusb->Report_buf[i+1];
 	}
+
+	// Handle report based on the length
+	switch (length)
+	{
+		case LENGTH_NOTHING:
+			break;
+		case LENGTH_TRIGGER:
+			USBD_HID_Digital_IO_Trigger(output_report);
+			break;
+		case LENGTH_SYNC:
+			// Handle sync method, disable other tasks
+			break;
+		case LENGTH_DIGITAL_IO:
+			USBD_HID_Digital_IO_Set_Changes(output_report);
+			break;
+		case LENGTH_DATETIME:
+			// Handle date- and timestamp
+			break;
+		default:
+			break;
+	}
+
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	input_report[1] = 1;
+	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
 }
 
 /* USER CODE END 4 */

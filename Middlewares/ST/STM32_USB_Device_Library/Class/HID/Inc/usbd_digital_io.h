@@ -64,6 +64,15 @@
 	 DONTCARE,
 	 TRIGGERED
  } HID_Digital_IO_Trigger;
+
+ typedef enum {
+	 LENGTH_NOTHING = 0,
+	 LENGTH_TRIGGER = 1,
+	 LENGTH_SYNC = 2,
+	 LENGTH_DIGITAL_IO = 6,
+	 LENGTH_DATETIME = 7
+ } HID_Digital_IO_Output;
+
  typedef enum {
 	 PORT_UNUSED = 0xff,
 	 PORT_0 = 0x00,
