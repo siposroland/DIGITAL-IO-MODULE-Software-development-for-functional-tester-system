@@ -55,6 +55,7 @@
 HID_DIGITAL_IO_TypeDef digital_io;
 HID_DIGITAL_IO_TypeDef digital_io_new_state;
 HID_Digital_IO_Trigger digital_io_trigger;
+ORDERED_ARRAY digital_io_switch_buffer;
 
 /* Functions */
 

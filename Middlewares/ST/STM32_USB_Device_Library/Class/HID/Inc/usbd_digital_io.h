@@ -64,6 +64,23 @@
 	 DONTCARE,
 	 TRIGGERED
  } HID_Digital_IO_Trigger;
+ typedef enum {
+	 PORT_UNUSED = 0xff,
+	 PORT_0 = 0x00,
+	 PORT_1 = 0x01,
+	 PORT_2 = 0x02,
+	 PORT_3 = 0x03,
+	 PORT_4 = 0x04,
+	 PORT_5 = 0x05
+ } HID_Digital_IO_Port_Names;
+
+ typedef struct _ORDERED_ARRAY
+   {
+	 HID_Digital_IO_Port_Names 	array[DIGITAL_MAX_PORT_NUM];
+     uint8_t              		head_idx;
+     uint8_t              		tail_idx;
+   } ORDERED_ARRAY;
+
  typedef struct _HID_DIGITAL_Port
    {
 	 Digital_IO_Change_Info	_changeIO;
