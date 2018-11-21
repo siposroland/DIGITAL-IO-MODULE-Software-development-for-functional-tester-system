@@ -36,6 +36,10 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
+#include "usbd_digital_io.h"
+
+// Scheduler timer
+uint16_t scheduler_timer = 0;
 
 /* USER CODE END 0 */
 
@@ -181,6 +185,12 @@ void SysTick_Handler(void)
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
+  scheduler_timer ++;
+  if (scheduler_timer > 200)
+  {
+	  digital_io_report_flag = SEND_REPORT;
+	  scheduler_timer = 0;
+  }
 
   /* USER CODE END SysTick_IRQn 1 */
 }

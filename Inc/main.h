@@ -130,6 +130,10 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
+typedef enum {
+	MAIN_STATE_NORMAL,
+	MAIN_STATE_SYNC
+} MAIN_STATE;
 
 /* USER CODE END Private defines */
 
