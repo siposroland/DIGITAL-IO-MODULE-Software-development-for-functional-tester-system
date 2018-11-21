@@ -59,6 +59,11 @@
    INPUT = 0,
    OUTPUT = 1
  } Digital_IO_Mode_Info;
+
+ typedef enum {
+	 DONTCARE,
+	 TRIGGERED
+ } HID_Digital_IO_Trigger;
  typedef struct _HID_DIGITAL_Port
    {
 	 Digital_IO_Change_Info	_changeIO;
@@ -78,6 +83,7 @@
 
  extern HID_DIGITAL_IO_TypeDef digital_io;
  extern HID_DIGITAL_IO_TypeDef digital_io_new_state;
+ extern HID_Digital_IO_Trigger digital_io_trigger;
 
  /**
    * @brief  USBH_HID_Digital_IO_Init
@@ -100,6 +106,30 @@
    * @retval USBH Status
    */
  void USBD_HID_Digital_IO_Read(void);
+
+
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_Set_Changes(uint8_t* output_buff);
+
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_Trigger (uint8_t* output_buff);
+
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @param  phost: Host handle
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_Reset_SwitchTrig(void);
+
 
 #ifdef __cplusplus
 }

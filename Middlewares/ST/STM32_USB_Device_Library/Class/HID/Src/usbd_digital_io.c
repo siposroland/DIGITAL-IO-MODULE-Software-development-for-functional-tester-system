@@ -54,6 +54,7 @@
 /* Global variables */
 HID_DIGITAL_IO_TypeDef digital_io;
 HID_DIGITAL_IO_TypeDef digital_io_new_state;
+HID_Digital_IO_Trigger digital_io_trigger;
 
 /* Functions */
 
@@ -274,6 +275,23 @@ void USBD_HID_Digital_IO_Set_Changes(uint8_t* output_buff)
 		}// if (pin)
 
 	} // for (ports)
+}
+
+/**
+  * @brief  USBH_HID_Digital_IO_Init
+  *         The function init the HID digital IO.
+  * @retval USBH Status
+  */
+void USBD_HID_Digital_IO_Trigger (uint8_t* output_buff)
+{
+	if (output_buff[0] == 0xfe)
+	{
+		digital_io_trigger = TRIGGERED;
+	}
+	else
+	{
+		digital_io_trigger = DONTCARE;
+	}
 }
 
 }
