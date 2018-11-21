@@ -148,6 +148,18 @@ void GPIO_Write_DIGITAL_IO(uint8_t port, uint8_t pin, GPIO_PinState value)
 	HAL_GPIO_WritePin(gpio_digital_port[port][pin],gpio_digital_pin[port][pin], value);
 }
 
+void GPIO_Toggle_LED(void)
+{
+	if (HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin) == GPIO_PIN_SET)
+	{
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	}
+	else
+	{
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	}
+}
+
 
 /* USER CODE END 2 */
 
