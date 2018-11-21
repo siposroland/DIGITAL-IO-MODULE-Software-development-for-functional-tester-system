@@ -75,7 +75,7 @@ void SystemClock_Config(void);
 /* Private function prototypes -----------------------------------------------*/
 void USB_RX_Interrupt(void);
 /* USER CODE END PFP */
-uint8_t input_report[11] = {0};
+uint8_t input_report[11] = {1};
 uint8_t output_report[64] = {0};
 /* USER CODE BEGIN 0 */
 
@@ -114,7 +114,9 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-  USBD_HID_Digital_IO_Init();
+  USBD_HID_Digital_IO_Init(digital_io);
+  USBD_HID_Digital_IO_Init(digital_io_new_state);
+  //HAL_Delay(10000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,21 +124,24 @@ int main(void)
   while (1)
   {
 	  static uint8_t state = 0;
-	  HAL_Delay(2000);
+	  HAL_Delay(1000);
 
 	  USBD_HID_Digital_IO_Read();
 	  USBD_HID_Digital_IO_CreateReport((uint8_t*)&input_report);
-	  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
 
 	  if(state)
 	  {
 	  	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-		  state = 0;
+	  	  //uint8_t yes[11] = { 0xAA, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
+		  state = 1;
 	  }
 	  else
 	  {
 	      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-		  state = 1;
+	  	  //uint8_t no[11] = { 0x11, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
+		  state = 0;
 	  }
 
 
