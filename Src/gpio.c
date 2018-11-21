@@ -151,6 +151,11 @@ uint8_t GPIO_Read_DIGITAL_IO(uint8_t port, uint8_t pin)
 	//return szam2 + szam;
 }
 
+void GPIO_Write_DIGITAL_IO(uint8_t port, uint8_t pin, GPIO_PinState value)
+{
+	HAL_GPIO_WritePin(gpio_digital_port[port][pin],gpio_digital_pin[port][pin], value);
+}
+
 
 /* USER CODE END 2 */
 
