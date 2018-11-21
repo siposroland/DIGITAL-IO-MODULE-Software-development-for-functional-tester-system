@@ -50,34 +50,34 @@
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
 /* USER CODE BEGIN 0 */
-#include "usbd_digital_io.h"
 
-uint16_t gpio_digital_pin [DIGITAL_MAX_PORT_NUM]  [DIGITAL_MAX_PIN_NUM] =
-{
-	{PORT_0_PIN_0_Pin, PORT_0_PIN_1_Pin, PORT_0_PIN_2_Pin, PORT_0_PIN_3_Pin},
-	{PORT_1_PIN_0_Pin, PORT_1_PIN_1_Pin, PORT_1_PIN_2_Pin, PORT_1_PIN_3_Pin},
-	{PORT_2_PIN_0_Pin, PORT_2_PIN_1_Pin, PORT_2_PIN_2_Pin, PORT_2_PIN_3_Pin},
-	{PORT_3_PIN_0_Pin, PORT_3_PIN_1_Pin, PORT_3_PIN_2_Pin, PORT_3_PIN_3_Pin},
-	{PORT_4_PIN_0_Pin, PORT_4_PIN_1_Pin, PORT_4_PIN_2_Pin, PORT_4_PIN_3_Pin},
-	{PORT_5_PIN_0_Pin, PORT_5_PIN_1_Pin, PORT_5_PIN_2_Pin, PORT_5_PIN_3_Pin}
-};
 
-GPIO_TypeDef* gpio_digital_port [DIGITAL_MAX_PORT_NUM]  [DIGITAL_MAX_PIN_NUM] =
-{
-	{PORT_0_PIN_0_GPIO_Port, PORT_0_PIN_1_GPIO_Port, PORT_0_PIN_2_GPIO_Port, PORT_0_PIN_3_GPIO_Port},
-	{PORT_1_PIN_0_GPIO_Port, PORT_1_PIN_1_GPIO_Port, PORT_1_PIN_2_GPIO_Port, PORT_1_PIN_3_GPIO_Port},
-	{PORT_2_PIN_0_GPIO_Port, PORT_2_PIN_1_GPIO_Port, PORT_2_PIN_2_GPIO_Port, PORT_2_PIN_3_GPIO_Port},
-	{PORT_3_PIN_0_GPIO_Port, PORT_3_PIN_1_GPIO_Port, PORT_3_PIN_2_GPIO_Port, PORT_3_PIN_3_GPIO_Port},
-	{PORT_4_PIN_0_GPIO_Port, PORT_4_PIN_1_GPIO_Port, PORT_4_PIN_2_GPIO_Port, PORT_4_PIN_3_GPIO_Port},
-	{PORT_5_PIN_0_GPIO_Port, PORT_5_PIN_1_GPIO_Port, PORT_5_PIN_2_GPIO_Port, PORT_5_PIN_3_GPIO_Port}
-};
+
 /* USER CODE END 0 */
 
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
+ uint16_t gpio_digital_pin [DIGITAL_MAX_PORT_NUM]  [DIGITAL_MAX_PIN_NUM] =
+ {
+ 	{PORT_0_PIN_0_Pin, PORT_0_PIN_1_Pin, PORT_0_PIN_2_Pin, PORT_0_PIN_3_Pin},
+ 	{PORT_1_PIN_0_Pin, PORT_1_PIN_1_Pin, PORT_1_PIN_2_Pin, PORT_1_PIN_3_Pin},
+ 	{PORT_2_PIN_0_Pin, PORT_2_PIN_1_Pin, PORT_2_PIN_2_Pin, PORT_2_PIN_3_Pin},
+ 	{PORT_3_PIN_0_Pin, PORT_3_PIN_1_Pin, PORT_3_PIN_2_Pin, PORT_3_PIN_3_Pin},
+ 	{PORT_4_PIN_0_Pin, PORT_4_PIN_1_Pin, PORT_4_PIN_2_Pin, PORT_4_PIN_3_Pin},
+ 	{PORT_5_PIN_0_Pin, PORT_5_PIN_1_Pin, PORT_5_PIN_2_Pin, PORT_5_PIN_3_Pin}
+ };
 
+ GPIO_TypeDef* gpio_digital_port [DIGITAL_MAX_PORT_NUM]  [DIGITAL_MAX_PIN_NUM] =
+ {
+ 	{PORT_0_PIN_0_GPIO_Port, PORT_0_PIN_1_GPIO_Port, PORT_0_PIN_2_GPIO_Port, PORT_0_PIN_3_GPIO_Port},
+ 	{PORT_1_PIN_0_GPIO_Port, PORT_1_PIN_1_GPIO_Port, PORT_1_PIN_2_GPIO_Port, PORT_1_PIN_3_GPIO_Port},
+ 	{PORT_2_PIN_0_GPIO_Port, PORT_2_PIN_1_GPIO_Port, PORT_2_PIN_2_GPIO_Port, PORT_2_PIN_3_GPIO_Port},
+ 	{PORT_3_PIN_0_GPIO_Port, PORT_3_PIN_1_GPIO_Port, PORT_3_PIN_2_GPIO_Port, PORT_3_PIN_3_GPIO_Port},
+ 	{PORT_4_PIN_0_GPIO_Port, PORT_4_PIN_1_GPIO_Port, PORT_4_PIN_2_GPIO_Port, PORT_4_PIN_3_GPIO_Port},
+ 	{PORT_5_PIN_0_GPIO_Port, PORT_5_PIN_1_GPIO_Port, PORT_5_PIN_2_GPIO_Port, PORT_5_PIN_3_GPIO_Port}
+ };
 /* USER CODE END 1 */
 
 /** Configure pins as 
