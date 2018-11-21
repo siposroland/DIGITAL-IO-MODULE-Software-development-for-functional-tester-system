@@ -59,17 +59,19 @@
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "usbd_digital_io.h"
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
-
+ extern uint16_t gpio_digital_pin [DIGITAL_MAX_PORT_NUM]  [DIGITAL_MAX_PIN_NUM];
+ extern GPIO_TypeDef* gpio_digital_port [DIGITAL_MAX_PORT_NUM]  [DIGITAL_MAX_PIN_NUM];
 /* USER CODE END Private defines */
 
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 uint8_t GPIO_Read_DIGITAL_IO(uint8_t port, uint8_t pin);
+void GPIO_Write_DIGITAL_IO(uint8_t port, uint8_t pin, GPIO_PinState value);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

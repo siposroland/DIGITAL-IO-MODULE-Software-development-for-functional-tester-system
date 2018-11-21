@@ -54,8 +54,11 @@
 #include "usb_device.h"
 #include "gpio.h"
 
-/* USER CODE BEGIN Includes */
 
+/* USER CODE BEGIN Includes */
+#include "usbd_customhid.h"
+#include "usbd_custom_hid_if.h"
+#include "usbd_digital_io.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -70,10 +73,10 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void USB_RX_Interrupt(void);
 /* USER CODE END PFP */
-uint8_t yes[4] = {0x15, 0xfe, 0xfe, 0xfe};
-uint8_t no[4] = {0};
+uint8_t input_report[11] = {1};
+uint8_t output_report[64] = {0};
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -111,7 +114,10 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-  USBD_HID_Digital_IO_Init();
+  USBD_HID_Digital_IO_Init(digital_io);
+  USBD_HID_Digital_IO_Init(digital_io_new_state);
+  USBD_HID_Digital_IO_Reset_SwitchTrig();
+  //HAL_Delay(10000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,24 +125,24 @@ int main(void)
   while (1)
   {
 	  static uint8_t state = 0;
-	  HAL_Delay(2000);
+	  HAL_Delay(1000);
 
 	  USBD_HID_Digital_IO_Read();
-	  USBD_HID_Digital_IO_CreateReport(&yes);
-
+	  USBD_HID_Digital_IO_CreateReport((uint8_t*)&input_report);
 
 	  if(state)
 	  {
-		  USBD_HID_Digital_IO_CreateReport();
 	  	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-		  USBD_HID_SendReport(&hUsbDeviceFS, &yes, 4);
-		  state = 0;
+	  	  //uint8_t yes[11] = { 0xAA, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
+		  state = 1;
 	  }
 	  else
 	  {
 	      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-		  USBD_HID_SendReport(&hUsbDeviceFS, &no, 4);
-		  state = 1;
+	  	  //uint8_t no[11] = { 0x11, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
+		  state = 0;
 	  }
 
 
@@ -217,6 +223,53 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void USB_RX_Interrupt(void)
+{
+	uint8_t i;
+	HID_Digital_IO_Output length = LENGTH_NOTHING;
+	USBD_CUSTOM_HID_HandleTypeDef *myusb=(USBD_CUSTOM_HID_HandleTypeDef *)hUsbDeviceFS.pClassData;
+
+	//Clear arr
+	for(i=0;i<64;i++)
+	{
+		output_report[i]=0;
+	}
+
+	// First byte contains numbers of datas in byte length
+	length = myusb->Report_buf[0];
+
+	// Copy the output report
+	for( i = 0; i < length; i++ )
+	{
+		output_report[i]=myusb->Report_buf[i+1];
+	}
+
+	// Handle report based on the length
+	switch (length)
+	{
+		case LENGTH_NOTHING:
+			break;
+		case LENGTH_TRIGGER:
+			USBD_HID_Digital_IO_Trigger(output_report);
+			break;
+		case LENGTH_SYNC:
+			// Handle sync method, disable other tasks
+			break;
+		case LENGTH_DIGITAL_IO:
+			USBD_HID_Digital_IO_Set_Changes(output_report);
+			break;
+		case LENGTH_DATETIME:
+			// Handle date- and timestamp
+			break;
+		default:
+			break;
+	}
+
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	input_report[1] = 1;
+	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
+}
 
 /* USER CODE END 4 */
 
