@@ -44,20 +44,37 @@
  extern "C" {
 #endif
 
+ typedef enum {
+   UNCHANGED,
+   CHANGED
+ } Digital_IO_Change_Info;
+
+ typedef enum {
+   NOPULL = 0, // all two bits are 0
+   PULLDOWN = 2, // only the second bit is 1
+   PULLUP = 4 // only the third bit is 1
+ } Digital_IO_Pull_Info;
+
+ typedef enum {
+   INPUT = 0,
+   OUTPUT = 1
+ } Digital_IO_Mode_Info;
  typedef struct _HID_DIGITAL_Port
-  {
-    uint8_t              pin_enabled_size;
-    uint8_t              direction;
-    uint8_t              pins[DIGITAL_MAX_PIN_NUM];
-  }
-  HID_DIGITAL_Port_TypeDef;
+   {
+	 Digital_IO_Change_Info	_changeIO;
+	 Digital_IO_Change_Info	_changePIN;
+     uint8_t              	pin_enabled_size;
+     uint8_t              	pins[DIGITAL_MAX_PIN_NUM];
+     GPIO_InitTypeDef		gpio_settings;
+   } HID_DIGITAL_Port_TypeDef;
 
  typedef struct _HID_DIGITAL_IO_Info
  {
    uint8_t              		port_enabled_size;
    HID_DIGITAL_Port_TypeDef		ports[DIGITAL_MAX_PORT_NUM];
- }
- HID_DIGITAL_IO_TypeDef;
+ } HID_DIGITAL_IO_TypeDef;
+
+
 
  extern HID_DIGITAL_IO_TypeDef digital_io;
 
