@@ -100,7 +100,8 @@
 
  typedef enum {
 	 DONTCARE,
-	 TRIGGERED
+	 TRIGGERED,
+	 DO_TRIGGER
  } HID_Digital_IO_Trigger;
 
  typedef enum {

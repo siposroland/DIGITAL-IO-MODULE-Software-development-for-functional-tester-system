@@ -411,24 +411,29 @@ void USBD_HID_Digital_IO_Process_Trigger_Event(uint8_t* output_buff, HID_DIGITAL
 	 * Byte[0] 		-> (E | IIDD | YY | -) -> E = ENABLE trig event, IIDD = ID of the trig event, YY (+1) = number of AND operator/operators
 	 * Byte[1-3]	-> ( XXX | YYY | V |-) ->XXX = port number (0-5), YYY = pin number (0-3), V = value (0 or 1)
 	 */
-	uint8_t trig_idx = 0, id = 0;
+	uint8_t trig_idx = 0, id = 0, enable = 0, num = 0, port = 0, pin = 0, var = 0;
 
 
 	// Read ID and identificate trigger event descriptor
 	id = read_from_byte(output_buff[0], SIZE_4, SHIFT_1);
 
 	// Read EN bit
-	t[id].enable = read_from_byte(output_buff[0], SIZE_1, SHIFT_0);
+	enable = read_from_byte(output_buff[0], SIZE_1, SHIFT_0);
+	t[id].enable = enable;
 
 	if(t[id].enable)
 	{
 		// Read number of ANDs
-		t[id].num_of_ANDs = read_from_byte(output_buff[0], SIZE_2, SHIFT_4) + 1;
+		num = read_from_byte(output_buff[0], SIZE_2, SHIFT_5) + 1;
+		t[id].num_of_ANDs = num;
 		for(trig_idx = 0; trig_idx < t[id].num_of_ANDs; trig_idx ++)
 		{
-			t[id].element[trig_idx].port_num = read_from_byte(output_buff[trig_idx], SIZE_3, SHIFT_0);
-			t[id].element[trig_idx].pin_num = read_from_byte(output_buff[trig_idx], SIZE_3, SHIFT_3);
-			t[id].element[trig_idx].var_val = read_from_byte(output_buff[trig_idx], SIZE_1, SHIFT_6);
+			port = read_from_byte(output_buff[trig_idx+1], SIZE_3, SHIFT_0);
+			pin = read_from_byte(output_buff[trig_idx+1], SIZE_3, SHIFT_3);
+			var = read_from_byte(output_buff[trig_idx+1], SIZE_1, SHIFT_6);
+			t[id].element[trig_idx].port_num = port;
+			t[id].element[trig_idx].pin_num = pin;
+			t[id].element[trig_idx].var_val = var;
 		}
 	}
 	else
@@ -445,7 +450,6 @@ void USBD_HID_Digital_IO_Process_Trigger_Event(uint8_t* output_buff, HID_DIGITAL
   */
 HID_Digital_IO_Trigger USBD_HID_Digital_IO_Check_Trigger_Event(HID_DIGITAL_IO_TRIGGER_Event* t, uint8_t id)
 {
-	HID_Digital_IO_Trigger trig_flag;
 	uint8_t trig_idx = 0, port = 0, pin = 0;
 	uint8_t param[4] = {0};
 	uint8_t value[4] = {0};
@@ -453,9 +457,9 @@ HID_Digital_IO_Trigger USBD_HID_Digital_IO_Check_Trigger_Event(HID_DIGITAL_IO_TR
 	// Read parameters to the logical expression
 	for(trig_idx = 0; trig_idx < t[id].num_of_ANDs; trig_idx++)
 	{
-		value[trig_idx] = t[id].element[0].var_val;
-		port = t[id].element[0].port_num;
-		pin = t[id].element[0].pin_num;
+		value[trig_idx] = t[id].element[trig_idx].var_val;
+		port = t[id].element[trig_idx].port_num;
+		pin = t[id].element[trig_idx].pin_num;
 		param[trig_idx] = digital_io.ports[port].pins[pin];
 	}
 
@@ -499,7 +503,7 @@ uint8_t create_mask(uint8_t num)
 	uint8_t i = 0;
 	uint8_t mask = 0;
 
-	for(i = 1; i < num; i++)
+	for(i = 1; i < num+1; i++)
 	{
 		mask |= (1 << (i-1));
 	}
@@ -508,6 +512,9 @@ uint8_t create_mask(uint8_t num)
 
 uint8_t read_from_byte(uint8_t buffer, INTERVAL_Size size, SHIFT_Num shift)
 {
-	return (buffer & MASK_SHIFT(create_mask(size), shift)) >> shift;
+	uint8_t mask = MASK_SHIFT(create_mask(size), shift);
+	uint8_t val1 = (buffer & mask);
+	uint8_t val2 = val1 >> shift;
+	return val2;
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

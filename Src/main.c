@@ -135,12 +135,16 @@ int main(void)
 
 		for(i = 0; i < DIGITAL_IO_MAX_TRIG_NUM; i++)
 		{
-			digital_io_do_trigger |= USBD_HID_Digital_IO_Reset_Trigger_Event(digital_io_trig_events[i]);
+			if(digital_io_do_trigger != TRIGGERED)
+			{
+				digital_io_do_trigger = USBD_HID_Digital_IO_Check_Trigger_Event(digital_io_trig_events, i);
+			}
 		}
 
-		if (digital_io_do_trigger == TRIGGERED)
+		if(digital_io_do_trigger == TRIGGERED)
 		{
-			// TODO trigger event
+			HAL_GPIO_WritePin(TRIGGER_OUT_GPIO_Port, TRIGGER_OUT_Pin, GPIO_PIN_SET);
+			digital_io_do_trigger = DO_TRIGGER;
 		}
 
 		// Create and send digital IO report
