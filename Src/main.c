@@ -65,7 +65,6 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-//#define INNER_TEST (1U)
 
 /* USER CODE END PV */
 
@@ -91,7 +90,7 @@ MAIN_STATE main_state = MAIN_STATE_NORMAL;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	uint8_t i = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -120,6 +119,11 @@ int main(void)
   USBD_HID_Digital_IO_Init(&digital_io);
   USBD_HID_Digital_IO_Init(&digital_io_new_state);
   USBD_HID_Digital_IO_Reset_SwitchTrig();
+  for (i = 0; i < DIGITAL_IO_MAX_TRIG_NUM; i++)
+  {
+	  USBD_HID_Digital_IO_Reset_Trigger_Event(digital_io_trig_events[i]);
+  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -128,35 +132,34 @@ int main(void)
   {
 	if (main_state == MAIN_STATE_NORMAL)
 	{
+		// Read GPIO pins and test trigger events
+		USBD_HID_Digital_IO_Read();
+
+		for(i = 0; i < DIGITAL_IO_MAX_TRIG_NUM; i++)
+		{
+			digital_io_do_trigger |= USBD_HID_Digital_IO_Reset_Trigger_Event(digital_io_trig_events[i]);
+		}
+
+		if (digital_io_do_trigger == TRIGGERED)
+		{
+			// TODO trigger event
+		}
+
 		// Create and send digital IO report
 		if (digital_io_report_flag == SEND_REPORT)
 		{
-		  USBD_HID_Digital_IO_Read();
 		  USBD_HID_Digital_IO_CreateReport((uint8_t*)&input_report);
 		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
 		  digital_io_report_flag = NO_REPORT;
-#ifdef	INNER_TEST
-		  digital_io_change_flag = CHANGED;
-#endif
 		}
 
 		// Store digital IO changes
 		if (digital_io_change_flag == CHANGED)
 		{
 			USBD_HID_Digital_IO_Init(&digital_io_new_state);
-#ifdef	INNER_TEST
-			output_report[0] = 0b11111011; // out, pullup, all high
-			output_report[1] = 0b10100011;
-			output_report[2] = 0b00001001;
-			output_report[3] = 0b00000000;
-			output_report[4] = 0b00000000;
-			output_report[5] = 0b00000000;
-#endif
 			USBD_HID_Digital_IO_Set_Changes(output_report);
-#ifdef	INNER_TEST
-			digital_io_trigger = TRIGGERED;
-#endif
 			digital_io_change_flag = UNCHANGED;
+			digital_io_change_enable = 1;
 		}
 
 		// Enforce settings of the pins
@@ -166,6 +169,7 @@ int main(void)
 			USBD_HID_Digital_IO_Init(&digital_io_new_state);
 			USBD_HID_Digital_IO_Reset_SwitchTrig();
 			digital_io_trigger = DONTCARE;
+			digital_io_change_enable = 0;
 		}
 	}
 	if (main_state == MAIN_STATE_SYNC)
@@ -275,8 +279,15 @@ void USB_RX_Interrupt(void)
 	{
 		case LENGTH_NOTHING:
 			break;
+		case LENGTH_TRIGGER_EVENT:
+			USBD_HID_Digital_IO_Process_Trigger_Event(output_report, digital_io_trig_events);
+			break;
 		case LENGTH_TRIGGER:
-			USBD_HID_Digital_IO_Trigger(output_report);
+			// Defend to the multiple triggering
+			if (digital_io_change_enable)
+			{
+				USBD_HID_Digital_IO_Trigger(output_report);
+			}
 			break;
 		case LENGTH_SYNC:
 			// Handle sync method, disable other tasks
