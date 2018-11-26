@@ -55,9 +55,12 @@
 HID_DIGITAL_IO_TypeDef digital_io;
 HID_DIGITAL_IO_TypeDef digital_io_new_state;
 HID_Digital_IO_Trigger digital_io_trigger;
+HID_Digital_IO_Trigger digital_io_do_trigger = DONTCARE;
+Digital_IO_Change_Flag digital_io_change_enable;
 Digital_IO_Change_Flag digital_io_change_flag;
 Digital_IO_Report_Flag digital_io_report_flag;
 ORDERED_ARRAY digital_io_switch_buffer;
+HID_DIGITAL_IO_TRIGGER_Event digital_io_trig_events[DIGITAL_IO_MAX_TRIG_NUM];
 
 /* Functions */
 
@@ -264,20 +267,7 @@ void USBD_HID_Digital_IO_Set_Changes(uint8_t* output_buff)
 					digital_io_new_state.ports[port_idx].pins[pin_idx] = (temp_pins >> pin_idx) & 0x01;
 
 					// Update _changePIN flag based on pin values and _changeIO state (true, when old is INPUT or (OUTPUT and pin values different))
-					if (
-							(
-								(digital_io_new_state.ports[port_idx].pins[pin_idx] != digital_io.ports[port_idx].pins[pin_idx]) &&
-								(digital_io_new_state.ports[port_idx]._changeIO == UNCHANGED)
-							)
-							||  (digital_io_new_state.ports[port_idx]._changeIO == CHANGED)
-						)
-					{
-						digital_io_new_state.ports[port_idx]._changePIN = CHANGED;
-					} // if (_changePIN)
-					else
-					{
-						digital_io_new_state.ports[port_idx]._changePIN = UNCHANGED;
-					} // else (_changePIN)
+					digital_io_new_state.ports[port_idx]._changePIN = CHANGED;
 				}
 			}
 			// The _changePIN flag may different if the previous setting was OUTPUT
@@ -390,4 +380,134 @@ void USBD_HID_Digital_IO_GPIO_Setup (uint8_t idx)
 	HAL_GPIO_Init(temp_portdef, &GPIO_InitStruct);
 }
 
+/**
+  * @brief  USBH_HID_Digital_IO_Init
+  *         The function init the HID digital IO.
+  * @retval USBH Status
+  */
+void USBD_HID_Digital_IO_Reset_Trigger_Event(HID_DIGITAL_IO_TRIGGER_Event* trig_event)
+{
+	uint8_t trig_idx = 0;
+	// Initialize trigger event values
+	trig_event->enable = 0;
+	trig_event->num_of_ANDs = 0;
+	for(trig_idx = 0; trig_idx < LOGICAL_MAX_ELEMENT_NUM; trig_idx++)
+	{
+		trig_event->element[trig_idx].pin_num = 0;
+		trig_event->element[trig_idx].port_num = 0;
+		trig_event->element[trig_idx].var_val = 0;
+	}
+}
+
+/**
+  * @brief  USBH_HID_Digital_IO_Init
+  *         The function init the HID digital IO.
+  * @retval USBH Status
+  */
+void USBD_HID_Digital_IO_Process_Trigger_Event(uint8_t* output_buff, HID_DIGITAL_IO_TRIGGER_Event* t)
+{
+	/* PROTOCOL:
+	 * Input: 5 bytes
+	 * Byte[0] 		-> (E | IIDD | YY | -) -> E = ENABLE trig event, IIDD = ID of the trig event, YY (+1) = number of AND operator/operators
+	 * Byte[1-3]	-> ( XXX | YYY | V |-) ->XXX = port number (0-5), YYY = pin number (0-3), V = value (0 or 1)
+	 */
+	uint8_t trig_idx = 0, id = 0;
+
+
+	// Read ID and identificate trigger event descriptor
+	id = read_from_byte(output_buff[0], SIZE_4, SHIFT_1);
+
+	// Read EN bit
+	t[id].enable = read_from_byte(output_buff[0], SIZE_1, SHIFT_0);
+
+	if(t[id].enable)
+	{
+		// Read number of ANDs
+		t[id].num_of_ANDs = read_from_byte(output_buff[0], SIZE_2, SHIFT_4) + 1;
+		for(trig_idx = 0; trig_idx < t[id].num_of_ANDs; trig_idx ++)
+		{
+			t[id].element[trig_idx].port_num = read_from_byte(output_buff[trig_idx], SIZE_3, SHIFT_0);
+			t[id].element[trig_idx].pin_num = read_from_byte(output_buff[trig_idx], SIZE_3, SHIFT_3);
+			t[id].element[trig_idx].var_val = read_from_byte(output_buff[trig_idx], SIZE_1, SHIFT_6);
+		}
+	}
+	else
+	{
+		// Reset trigger event and disable it
+		USBD_HID_Digital_IO_Reset_Trigger_Event(&t[id]);
+	}
+}
+
+/**
+  * @brief  USBH_HID_Digital_IO_Init
+  *         The function init the HID digital IO.
+  * @retval USBH Status
+  */
+HID_Digital_IO_Trigger USBD_HID_Digital_IO_Check_Trigger_Event(HID_DIGITAL_IO_TRIGGER_Event* t, uint8_t id)
+{
+	HID_Digital_IO_Trigger trig_flag;
+	uint8_t trig_idx = 0, port = 0, pin = 0;
+	uint8_t param[4] = {0};
+	uint8_t value[4] = {0};
+
+	// Read parameters to the logical expression
+	for(trig_idx = 0; trig_idx < t[id].num_of_ANDs; trig_idx++)
+	{
+		value[trig_idx] = t[id].element[0].var_val;
+		port = t[id].element[0].port_num;
+		pin = t[id].element[0].pin_num;
+		param[trig_idx] = digital_io.ports[port].pins[pin];
+	}
+
+	if(t[id].enable)
+	{
+		switch(t[id].num_of_ANDs)
+		{
+			case 1:
+				if(param[0] == value[0])
+				{
+					return TRIGGERED;
+				}
+				break;
+			case 2:
+				if((param[0] == value[0]) && (param[1] == value[1]))
+				{
+					return TRIGGERED;
+				}
+				break;
+			case 3:
+				if((param[0] == value[0]) && (param[1] == value[1]) && (param[2] == value[2]))
+				{
+					return TRIGGERED;
+				}
+				break;
+			case 4:
+				if((param[0] == value[0]) && (param[1] == value[1]) && (param[2] == value[2]) && (param[3] == value[3]))
+				{
+					return TRIGGERED;
+				}
+				break;
+			default:
+				return DONTCARE;
+				break;
+		}
+	}
+}
+
+uint8_t create_mask(uint8_t num)
+{
+	uint8_t i = 0;
+	uint8_t mask = 0;
+
+	for(i = 1; i < num; i++)
+	{
+		mask |= (1 << (i-1));
+	}
+	return mask;
+}
+
+uint8_t read_from_byte(uint8_t buffer, INTERVAL_Size size, SHIFT_Num shift)
+{
+	return (buffer & MASK_SHIFT(create_mask(size), shift)) >> shift;
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
