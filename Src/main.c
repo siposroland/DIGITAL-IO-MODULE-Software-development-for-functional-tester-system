@@ -79,6 +79,7 @@ void USB_RX_Interrupt(void);
 uint8_t input_report[11] = {1};
 uint8_t output_report[64] = {0};
 MAIN_STATE main_state = MAIN_STATE_NORMAL;
+uint8_t trig_event_to_delete = 0;
 /* USER CODE END 0 */
 
 /**
@@ -138,6 +139,10 @@ int main(void)
 			if(digital_io_do_trigger != TRIGGERED)
 			{
 				digital_io_do_trigger = USBD_HID_Digital_IO_Check_Trigger_Event(digital_io_trig_events, i);
+				if (digital_io_do_trigger == TRIGGERED)
+				{
+					trig_event_to_delete = i;
+				}
 			}
 		}
 
@@ -145,6 +150,7 @@ int main(void)
 		{
 			HAL_GPIO_WritePin(TRIGGER_OUT_GPIO_Port, TRIGGER_OUT_Pin, GPIO_PIN_SET);
 			digital_io_do_trigger = DO_TRIGGER;
+			USBD_HID_Digital_IO_Reset_Trigger_Event(digital_io_trig_events[trig_event_to_delete]);
 		}
 
 		// Create and send digital IO report

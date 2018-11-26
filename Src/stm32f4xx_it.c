@@ -194,7 +194,7 @@ void SysTick_Handler(void)
 	if (digital_io_do_trigger == DO_TRIGGER)
 	{
 		 trigger_timeout ++;
-		 if(0/*trigger_timeout > 500*/)
+		 if(trigger_timeout > 500)
 		 {
 			HAL_GPIO_WritePin(TRIGGER_OUT_GPIO_Port, TRIGGER_OUT_Pin, GPIO_PIN_RESET);
 			trigger_timeout = 0;
