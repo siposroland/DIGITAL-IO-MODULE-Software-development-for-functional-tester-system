@@ -186,7 +186,7 @@ void SysTick_Handler(void)
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
   scheduler_timer ++;
-  if (scheduler_timer > 200)
+  if (scheduler_timer > 10)
   {
 	  digital_io_report_flag = SEND_REPORT;
 	  scheduler_timer = 0;
