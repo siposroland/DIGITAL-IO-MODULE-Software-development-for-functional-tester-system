@@ -54,7 +54,6 @@
 #include "usb_device.h"
 #include "gpio.h"
 
-
 /* USER CODE BEGIN Includes */
 #include "usbd_customhid.h"
 #include "usbd_custom_hid_if.h"
@@ -114,7 +113,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   MX_RTC_Init();
-
   /* USER CODE BEGIN 2 */
   USBD_HID_Digital_IO_Init(&digital_io);
   USBD_HID_Digital_IO_Init(&digital_io_new_state);
