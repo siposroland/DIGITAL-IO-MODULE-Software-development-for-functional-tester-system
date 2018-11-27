@@ -49,7 +49,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
-#include "rtc.h"
+#include "tim.h"
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
@@ -81,6 +81,7 @@ uint8_t output_report[64] = {0};
 MAIN_STATE main_state = MAIN_STATE_NORMAL;
 uint8_t trig_event_to_delete = 0;
 RTC_TimeTypeDef sTimeGlobal;
+RTC_TimeTypeDef sDateGlobal;
 /* USER CODE END 0 */
 
 /**
@@ -114,7 +115,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
-  MX_RTC_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   USBD_HID_Digital_IO_Init(&digital_io);
   USBD_HID_Digital_IO_Init(&digital_io_new_state);
@@ -203,7 +204,6 @@ void SystemClock_Config(void)
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
 
     /**Configure the main internal regulator output voltage 
     */
@@ -213,9 +213,8 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
@@ -237,13 +236,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
