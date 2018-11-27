@@ -316,6 +316,34 @@ void USB_RX_Interrupt(void)
 	input_report[1] = 1;
 	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
 }
+/**
+  * @brief  Alarm A callback.
+  * @param  hrtc pointer to a RTC_HandleTypeDef structure that contains
+  *                the configuration information for RTC.
+  * @retval None
+  */
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+{
+  /* Prevent unused argument(s) compilation warning */
+	RTC_TimeTypeDef sTime;
+	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	uint8_t next_second = sTime.Seconds++;
+	if (next_second > 59) next_second = 0;
+
+	RTC_AlarmTypeDef sAlarm;
+	sAlarm.AlarmTime.Hours = 0;
+	sAlarm.AlarmTime.Minutes = 0;
+	sAlarm.AlarmTime.Seconds = RTC_ByteToBcd2(next_second);
+	sAlarm.AlarmTime.TimeFormat = RTC_HOURFORMAT12_AM;
+	sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+	sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+	sAlarm.AlarmMask = RTC_ALARMMASK_SECONDS;
+	sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+	sAlarm.AlarmDateWeekDay = 1;
+	sAlarm.Alarm = RTC_ALARM_A;
+	HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, FORMAT_BCD);
+}
+
 /* USER CODE END 4 */
 
 /**
