@@ -496,6 +496,7 @@ HID_Digital_IO_Trigger USBD_HID_Digital_IO_Check_Trigger_Event(HID_DIGITAL_IO_TR
 				break;
 		}
 	}
+	return DONTCARE;
 }
 
 uint8_t create_mask(uint8_t num)

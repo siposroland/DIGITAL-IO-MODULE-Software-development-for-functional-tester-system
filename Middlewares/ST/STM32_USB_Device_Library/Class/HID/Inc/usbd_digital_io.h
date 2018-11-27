@@ -233,7 +233,21 @@
    *         The function init the HID digital IO.
    * @retval USBH Status
    */
- void USBD_HID_Digital_IO_Process_Trigger_Event(uint8_t* output_buff, HID_DIGITAL_IO_TRIGGER_Event* trig_event);
+ void USBD_HID_Digital_IO_Reset_Trigger_Event(HID_DIGITAL_IO_TRIGGER_Event* trig_event);
+
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @retval USBH Status
+   */
+ void USBD_HID_Digital_IO_Process_Trigger_Event(uint8_t* output_buff, HID_DIGITAL_IO_TRIGGER_Event* t);
+
+ /**
+   * @brief  USBH_HID_Digital_IO_Init
+   *         The function init the HID digital IO.
+   * @retval USBH Status
+   */
+ HID_Digital_IO_Trigger USBD_HID_Digital_IO_Check_Trigger_Event(HID_DIGITAL_IO_TRIGGER_Event* t, uint8_t id);
 
  uint8_t create_mask(uint8_t num);
  uint8_t read_from_byte(uint8_t buffer, INTERVAL_Size size, SHIFT_Num shift);

@@ -120,7 +120,7 @@ int main(void)
   USBD_HID_Digital_IO_Reset_SwitchTrig();
   for (i = 0; i < DIGITAL_IO_MAX_TRIG_NUM; i++)
   {
-	  USBD_HID_Digital_IO_Reset_Trigger_Event(digital_io_trig_events[i]);
+	  USBD_HID_Digital_IO_Reset_Trigger_Event(&digital_io_trig_events[i]);
   }
 
   /* USER CODE END 2 */
@@ -150,7 +150,7 @@ int main(void)
 		{
 			HAL_GPIO_WritePin(TRIGGER_OUT_GPIO_Port, TRIGGER_OUT_Pin, GPIO_PIN_SET);
 			digital_io_do_trigger = DO_TRIGGER;
-			USBD_HID_Digital_IO_Reset_Trigger_Event(digital_io_trig_events[trig_event_to_delete]);
+			USBD_HID_Digital_IO_Reset_Trigger_Event(&digital_io_trig_events[trig_event_to_delete]);
 		}
 
 		// Create and send digital IO report
@@ -315,7 +315,6 @@ void USB_RX_Interrupt(void)
 	input_report[1] = 1;
 	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
 }
-
 /* USER CODE END 4 */
 
 /**
