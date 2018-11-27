@@ -69,6 +69,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_NVIC_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -80,8 +81,6 @@ uint8_t input_report[11] = {1};
 uint8_t output_report[64] = {0};
 MAIN_STATE main_state = MAIN_STATE_NORMAL;
 uint8_t trig_event_to_delete = 0;
-RTC_TimeTypeDef sTimeGlobal;
-RTC_TimeTypeDef sDateGlobal;
 /* USER CODE END 0 */
 
 /**
@@ -115,7 +114,10 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
-  MX_TIM1_Init();
+  MX_TIM3_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   USBD_HID_Digital_IO_Init(&digital_io);
   USBD_HID_Digital_IO_Init(&digital_io_new_state);
@@ -124,7 +126,7 @@ int main(void)
   {
 	  USBD_HID_Digital_IO_Reset_Trigger_Event(&digital_io_trig_events[i]);
   }
-
+  HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -250,6 +252,17 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* TIM3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TIM3_IRQn);
 }
 
 /* USER CODE BEGIN 4 */
