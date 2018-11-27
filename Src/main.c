@@ -130,11 +130,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	HAL_RTC_GetTime(&hrtc, &sTimeGlobal, RTC_FORMAT_BIN);
-	if(sTimeGlobal.Seconds == 20)
-	{
-		digital_io_do_trigger = DONTCARE;
-	}
 	if (main_state == MAIN_STATE_NORMAL)
 	{
 		// Read GPIO pins and test trigger events
