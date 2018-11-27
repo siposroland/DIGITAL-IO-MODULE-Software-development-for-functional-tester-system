@@ -179,12 +179,12 @@ void PendSV_Handler(void)
 */
 void SysTick_Handler(void)
 {
-	/* USER CODE BEGIN SysTick_IRQn 0 */
+  /* USER CODE BEGIN SysTick_IRQn 0 */
 	static uint8_t trigger_timeout = 0;
-	/* USER CODE END SysTick_IRQn 0 */
-	HAL_IncTick();
-	HAL_SYSTICK_IRQHandler();
-	/* USER CODE BEGIN SysTick_IRQn 1 */
+  /* USER CODE END SysTick_IRQn 0 */
+  HAL_IncTick();
+  HAL_SYSTICK_IRQHandler();
+  /* USER CODE BEGIN SysTick_IRQn 1 */
 	scheduler_timer ++;
 	if (scheduler_timer > 10)
 	{
