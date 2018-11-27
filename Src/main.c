@@ -129,6 +129,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
 	if (main_state == MAIN_STATE_NORMAL)
 	{
 		// Read GPIO pins and test trigger events
