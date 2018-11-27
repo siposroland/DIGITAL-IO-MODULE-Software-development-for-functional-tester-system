@@ -79,40 +79,40 @@ void MX_RTC_Init(void)
 
     /**Initialize RTC and set the Time and Date 
     */
-  sTime.Hours = 0;
-  sTime.Minutes = 0;
-  sTime.Seconds = 1;
+  sTime.Hours = 0x20;
+  sTime.Minutes = 0x0;
+  sTime.Seconds = 0x0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK)
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sDate.WeekDay = RTC_WEEKDAY_MONDAY;
-  sDate.Month = RTC_MONTH_JANUARY;
-  sDate.Date = 1;
-  sDate.Year = 0;
+  sDate.WeekDay = RTC_WEEKDAY_TUESDAY;
+  sDate.Month = RTC_MONTH_NOVEMBER;
+  sDate.Date = 0x27;
+  sDate.Year = 0x18;
 
-  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
     /**Enable the Alarm A 
     */
-  sAlarm.AlarmTime.Hours = 0;
-  sAlarm.AlarmTime.Minutes = 0;
-  sAlarm.AlarmTime.Seconds = 1;
-  sAlarm.AlarmTime.SubSeconds = 0;
+  sAlarm.AlarmTime.Hours = 0x0;
+  sAlarm.AlarmTime.Minutes = 0x0;
+  sAlarm.AlarmTime.Seconds = 0x0;
+  sAlarm.AlarmTime.SubSeconds = 0x0;
   sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
   sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
   sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
   sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-  sAlarm.AlarmDateWeekDay = 1;
+  sAlarm.AlarmDateWeekDay = 0x1;
   sAlarm.Alarm = RTC_ALARM_A;
-  if (HAL_RTC_SetAlarm(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK)
+  if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -159,7 +159,32 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+/**
+  * @brief  Alarm A callback.
+  * @param  hrtc pointer to a RTC_HandleTypeDef structure that contains
+  *                the configuration information for RTC.
+  * @retval None
+  */
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+{
+  /* Prevent unused argument(s) compilation warning */
+	RTC_TimeTypeDef sTime;
+	HAL_RTC_GetTime(&hrtc, &sTime,RTC_FORMAT_BIN);
+	uint8_t next_second = sTime.Seconds+4;
+	if (next_second > 59) next_second = 0;
 
+	RTC_AlarmTypeDef sAlarm;
+	sAlarm.AlarmTime.Hours = 0;
+	sAlarm.AlarmTime.Minutes = 0;
+	sAlarm.AlarmTime.Seconds = RTC_ByteToBcd2(next_second);
+	sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+	sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+	sAlarm.AlarmMask = RTC_ALARMMASK_SECONDS;
+	sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+	sAlarm.AlarmDateWeekDay = 1;
+	sAlarm.Alarm = RTC_ALARM_A;
+	HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, FORMAT_BCD);
+}
 /* USER CODE END 1 */
 
 /**
