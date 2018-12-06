@@ -132,13 +132,11 @@ void USBD_HID_Digital_IO_Reset_SwitchTrig(void)
 void USBD_HID_Digital_IO_CreateReport(uint8_t* report)
 {
   uint8_t port_idx = 0, pin_idx = 0, offset = 0, report_num = 0;
-
   // Clean old report
   report[0] = 0;
   report[1] = 0;
   report[2] = 0;
   report[3] = 0;
-
   // Step over all ports
   for(port_idx = 0; port_idx < DIGITAL_MAX_PORT_NUM; port_idx++)
   {
@@ -148,16 +146,13 @@ void USBD_HID_Digital_IO_CreateReport(uint8_t* report)
 	  report[0] += (digital_io.ports[port_idx].gpio_settings.Mode << port_idx);
 
 	  // Select actual report and add offset
-	  if ((port_idx % 2) == 0)
-	  {
+	  if ((port_idx % 2) == 0) {
 		  report_num += 1;
 		  offset = 0;
 	  }
-	  else
-	  {
+	  else {
 		  offset = 4;
 	  }
-
 	  // Add pin values to the report
 	  // FORMAT: 3 byte -> 0000|1111, 2222|3333, 4444|5555 (4 pin / port)
 	  // Numbers sign the actual port
@@ -166,7 +161,6 @@ void USBD_HID_Digital_IO_CreateReport(uint8_t* report)
 		  report[report_num] += (digital_io.ports[port_idx].pins[pin_idx] << (pin_idx + offset));
 	  }
   }
-
 }
 
 /**
@@ -463,31 +457,28 @@ HID_Digital_IO_Trigger USBD_HID_Digital_IO_Check_Trigger_Event(HID_DIGITAL_IO_TR
 		param[trig_idx] = digital_io.ports[port].pins[pin];
 	}
 
+	// Check actual trigger contidions
 	if(t[id].enable)
 	{
 		switch(t[id].num_of_ANDs)
 		{
 			case 1:
-				if(param[0] == value[0])
-				{
+				if(param[0] == value[0]) {
 					return TRIGGERED;
 				}
 				break;
 			case 2:
-				if((param[0] == value[0]) && (param[1] == value[1]))
-				{
+				if((param[0] == value[0]) && (param[1] == value[1])) {
 					return TRIGGERED;
 				}
 				break;
 			case 3:
-				if((param[0] == value[0]) && (param[1] == value[1]) && (param[2] == value[2]))
-				{
+				if((param[0] == value[0]) && (param[1] == value[1]) && (param[2] == value[2])) {
 					return TRIGGERED;
 				}
 				break;
 			case 4:
-				if((param[0] == value[0]) && (param[1] == value[1]) && (param[2] == value[2]) && (param[3] == value[3]))
-				{
+				if((param[0] == value[0]) && (param[1] == value[1]) && (param[2] == value[2]) && (param[3] == value[3])) {
 					return TRIGGERED;
 				}
 				break;
