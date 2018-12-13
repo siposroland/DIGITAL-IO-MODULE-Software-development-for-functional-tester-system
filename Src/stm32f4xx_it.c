@@ -40,7 +40,7 @@
 
 // Scheduler timer
 uint16_t scheduler_timer = 0;
-
+uint8_t external_counter = 0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -219,11 +219,15 @@ void SysTick_Handler(void)
 void TIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM3_IRQn 0 */
-
+	external_counter++;
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
-
+  if (external_counter > 248)
+  {
+	  toggle_pps();
+	  external_counter = 0;
+  }
   /* USER CODE END TIM3_IRQn 1 */
 }
 

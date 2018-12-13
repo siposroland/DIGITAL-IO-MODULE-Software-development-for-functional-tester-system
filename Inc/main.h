@@ -67,10 +67,6 @@
 #define PORT_4_PIN_2_GPIO_Port GPIOC
 #define PORT_4_PIN_3_Pin GPIO_PIN_3
 #define PORT_4_PIN_3_GPIO_Port GPIOC
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
 #define PORT_3_PIN_0_Pin GPIO_PIN_7
@@ -111,6 +107,10 @@
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
+#define PPS_Pin GPIO_PIN_12
+#define PPS_GPIO_Port GPIOC
+#define TIMER_DRAIN_Pin GPIO_PIN_2
+#define TIMER_DRAIN_GPIO_Port GPIOD
 #define PORT_0_PIN_3_Pin GPIO_PIN_3
 #define PORT_0_PIN_3_GPIO_Port GPIOB
 #define PORT_1_PIN_0_Pin GPIO_PIN_4

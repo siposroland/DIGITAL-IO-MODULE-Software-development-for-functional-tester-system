@@ -50,7 +50,6 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "tim.h"
-#include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -112,9 +111,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   MX_TIM3_Init();
+  MX_TIM9_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
