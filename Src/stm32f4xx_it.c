@@ -36,11 +36,16 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
+#include "usbd_digital_io.h"
 
+// Scheduler timer
+uint16_t scheduler_timer = 0;
+uint8_t external_counter = 0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+extern TIM_HandleTypeDef htim3;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -176,11 +181,27 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+	static uint8_t trigger_timeout = 0;
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
+	scheduler_timer ++;
+	if (scheduler_timer > 10)
+	{
+	  digital_io_report_flag = SEND_REPORT;
+	  scheduler_timer = 0;
+	}
+	if (digital_io_do_trigger == DO_TRIGGER)
+	{
+		 trigger_timeout ++;
+		 if(trigger_timeout > 500)
+		 {
+			HAL_GPIO_WritePin(TRIGGER_OUT_GPIO_Port, TRIGGER_OUT_Pin, GPIO_PIN_RESET);
+			trigger_timeout = 0;
+			digital_io_do_trigger = DONTCARE;
+		 }
+	}
 
   /* USER CODE END SysTick_IRQn 1 */
 }
@@ -191,6 +212,24 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+/**
+* @brief This function handles TIM3 global interrupt.
+*/
+void TIM3_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM3_IRQn 0 */
+	external_counter++;
+  /* USER CODE END TIM3_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim3);
+  /* USER CODE BEGIN TIM3_IRQn 1 */
+  if (external_counter > 248)
+  {
+	  toggle_pps();
+	  external_counter = 0;
+  }
+  /* USER CODE END TIM3_IRQn 1 */
+}
 
 /**
 * @brief This function handles USB On The Go FS global interrupt.

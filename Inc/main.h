@@ -59,18 +59,72 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
+#define PORT_4_PIN_0_Pin GPIO_PIN_0
+#define PORT_4_PIN_0_GPIO_Port GPIOC
+#define PORT_4_PIN_1_Pin GPIO_PIN_1
+#define PORT_4_PIN_1_GPIO_Port GPIOC
+#define PORT_4_PIN_2_Pin GPIO_PIN_2
+#define PORT_4_PIN_2_GPIO_Port GPIOC
+#define PORT_4_PIN_3_Pin GPIO_PIN_3
+#define PORT_4_PIN_3_GPIO_Port GPIOC
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define PORT_3_PIN_0_Pin GPIO_PIN_7
+#define PORT_3_PIN_0_GPIO_Port GPIOA
+#define PORT_5_PIN_0_Pin GPIO_PIN_4
+#define PORT_5_PIN_0_GPIO_Port GPIOC
+#define PORT_5_PIN_1_Pin GPIO_PIN_5
+#define PORT_5_PIN_1_GPIO_Port GPIOC
+#define PORT_0_PIN_0_Pin GPIO_PIN_0
+#define PORT_0_PIN_0_GPIO_Port GPIOB
+#define PORT_0_PIN_1_Pin GPIO_PIN_1
+#define PORT_0_PIN_1_GPIO_Port GPIOB
+#define PORT_0_PIN_2_Pin GPIO_PIN_2
+#define PORT_0_PIN_2_GPIO_Port GPIOB
+#define PORT_2_PIN_2_Pin GPIO_PIN_10
+#define PORT_2_PIN_2_GPIO_Port GPIOB
+#define PORT_2_PIN_3_Pin GPIO_PIN_12
+#define PORT_2_PIN_3_GPIO_Port GPIOB
+#define TRIGGER_IN_Pin GPIO_PIN_14
+#define TRIGGER_IN_GPIO_Port GPIOB
+#define TRIGGER_OUT_Pin GPIO_PIN_15
+#define TRIGGER_OUT_GPIO_Port GPIOB
+#define PORT_5_PIN_2_Pin GPIO_PIN_6
+#define PORT_5_PIN_2_GPIO_Port GPIOC
+#define PORT_5_PIN_3_Pin GPIO_PIN_7
+#define PORT_5_PIN_3_GPIO_Port GPIOC
+#define PORT_3_PIN_1_Pin GPIO_PIN_8
+#define PORT_3_PIN_1_GPIO_Port GPIOA
+#define PORT_3_PIN_2_Pin GPIO_PIN_9
+#define PORT_3_PIN_2_GPIO_Port GPIOA
+#define PORT_3_PIN_3_Pin GPIO_PIN_10
+#define PORT_3_PIN_3_GPIO_Port GPIOA
+#define USB_DEVICE_DM_Pin GPIO_PIN_11
+#define USB_DEVICE_DM_GPIO_Port GPIOA
+#define USB_DEVICE_DP_Pin GPIO_PIN_12
+#define USB_DEVICE_DP_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
+#define PPS_Pin GPIO_PIN_12
+#define PPS_GPIO_Port GPIOC
+#define TIMER_DRAIN_Pin GPIO_PIN_2
+#define TIMER_DRAIN_GPIO_Port GPIOD
+#define PORT_0_PIN_3_Pin GPIO_PIN_3
+#define PORT_0_PIN_3_GPIO_Port GPIOB
+#define PORT_1_PIN_0_Pin GPIO_PIN_4
+#define PORT_1_PIN_0_GPIO_Port GPIOB
+#define PORT_1_PIN_1_Pin GPIO_PIN_5
+#define PORT_1_PIN_1_GPIO_Port GPIOB
+#define PORT_1_PIN_2_Pin GPIO_PIN_6
+#define PORT_1_PIN_2_GPIO_Port GPIOB
+#define PORT_1_PIN_3_Pin GPIO_PIN_7
+#define PORT_1_PIN_3_GPIO_Port GPIOB
+#define PORT_2_PIN_0_Pin GPIO_PIN_8
+#define PORT_2_PIN_0_GPIO_Port GPIOB
+#define PORT_2_PIN_1_Pin GPIO_PIN_9
+#define PORT_2_PIN_1_GPIO_Port GPIOB
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -80,6 +134,10 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
+typedef enum {
+	MAIN_STATE_NORMAL,
+	MAIN_STATE_SYNC
+} MAIN_STATE;
 
 /* USER CODE END Private defines */
 

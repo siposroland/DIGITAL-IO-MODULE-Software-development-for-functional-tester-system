@@ -43,6 +43,7 @@
 #include "stm32f4xx_hal.h"
 #include "main.h"
 /* Exported types ------------------------------------------------------------*/
+extern uint16_t scheduler_timer;
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
@@ -56,6 +57,7 @@ void SVC_Handler(void);
 void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
+void TIM3_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
 
 #ifdef __cplusplus

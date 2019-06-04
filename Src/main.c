@@ -49,12 +49,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
-#include "usart.h"
+#include "tim.h"
 #include "usb_device.h"
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "usbd_customhid.h"
+#include "usbd_custom_hid_if.h"
+#include "usbd_digital_io.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -66,14 +68,18 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_NVIC_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void USB_RX_Interrupt(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+uint8_t input_report[11] = {1};
+uint8_t output_report[64] = {0};
+MAIN_STATE main_state = MAIN_STATE_NORMAL;
+uint8_t trig_event_to_delete = 0;
 /* USER CODE END 0 */
 
 /**
@@ -84,7 +90,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	uint8_t i = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -105,17 +111,82 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
-  /* USER CODE BEGIN 2 */
+  MX_TIM3_Init();
+  MX_TIM9_Init();
 
+  /* Initialize interrupts */
+  MX_NVIC_Init();
+  /* USER CODE BEGIN 2 */
+  USBD_HID_Digital_IO_Init(&digital_io);
+  USBD_HID_Digital_IO_Init(&digital_io_new_state);
+  USBD_HID_Digital_IO_Reset_SwitchTrig();
+  for (i = 0; i < DIGITAL_IO_MAX_TRIG_NUM; i++)
+  {
+	  USBD_HID_Digital_IO_Reset_Trigger_Event(&digital_io_trig_events[i]);
+  }
+  HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	if (main_state == MAIN_STATE_NORMAL)
+	{
+		// Read GPIO pins and test trigger events
+		USBD_HID_Digital_IO_Read();
 
+		for(i = 0; i < DIGITAL_IO_MAX_TRIG_NUM; i++)
+		{
+			if(digital_io_do_trigger != TRIGGERED)
+			{
+				digital_io_do_trigger = USBD_HID_Digital_IO_Check_Trigger_Event(digital_io_trig_events, i);
+				if (digital_io_do_trigger == TRIGGERED)
+				{
+					trig_event_to_delete = i;
+				}
+			}
+		}
+
+		if(digital_io_do_trigger == TRIGGERED)
+		{
+			HAL_GPIO_WritePin(TRIGGER_OUT_GPIO_Port, TRIGGER_OUT_Pin, GPIO_PIN_SET);
+			digital_io_do_trigger = DO_TRIGGER;
+			USBD_HID_Digital_IO_Reset_Trigger_Event(&digital_io_trig_events[trig_event_to_delete]);
+		}
+
+		// Create and send digital IO report
+		if (digital_io_report_flag == SEND_REPORT)
+		{
+		  USBD_HID_Digital_IO_CreateReport((uint8_t*)&input_report);
+		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);
+		  digital_io_report_flag = NO_REPORT;
+		}
+
+		// Store digital IO changes
+		if (digital_io_change_flag == CHANGED)
+		{
+			USBD_HID_Digital_IO_Init(&digital_io_new_state);
+			USBD_HID_Digital_IO_Set_Changes(output_report);
+			digital_io_change_flag = UNCHANGED;
+			digital_io_change_enable = 1;
+		}
+
+		// Enforce settings of the pins
+		if (digital_io_trigger == TRIGGERED)
+		{
+			USBD_HID_Digital_IO_SwitchPorts();
+			USBD_HID_Digital_IO_Init(&digital_io_new_state);
+			USBD_HID_Digital_IO_Reset_SwitchTrig();
+			digital_io_trigger = DONTCARE;
+			digital_io_change_enable = 0;
+		}
+	}
+	if (main_state == MAIN_STATE_SYNC)
+	{
+		// TODO
+	}
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -182,7 +253,74 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* TIM3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TIM3_IRQn);
+}
+
 /* USER CODE BEGIN 4 */
+
+void USB_RX_Interrupt(void)
+{
+	uint8_t i;
+	HID_Digital_IO_Output length = LENGTH_NOTHING;
+	USBD_CUSTOM_HID_HandleTypeDef *myusb=(USBD_CUSTOM_HID_HandleTypeDef *)hUsbDeviceFS.pClassData;
+
+	//Clear arr
+	for(i=0;i<64;i++)
+	{
+		output_report[i]=0;
+	}
+
+	// First byte contains numbers of datas in byte length
+	length = myusb->Report_buf[0];
+
+	// Copy the output report
+	for( i = 0; i < length; i++ )
+	{
+		output_report[i]=myusb->Report_buf[i+1];
+	}
+
+	// Handle report based on the length
+	switch (length)
+	{
+		case LENGTH_NOTHING:
+			break;
+		case LENGTH_TRIGGER_EVENT:
+			USBD_HID_Digital_IO_Process_Trigger_Event(output_report, digital_io_trig_events);
+			break;
+		case LENGTH_TRIGGER:
+			// Defend to the multiple triggering
+			if (digital_io_change_enable)
+			{
+				USBD_HID_Digital_IO_Trigger(output_report);
+			}
+			break;
+		case LENGTH_SYNC:
+			// Handle sync method, disable other tasks
+			break;
+		case LENGTH_DIGITAL_IO:
+			digital_io_change_flag = CHANGED;
+			break;
+		case LENGTH_DATETIME:
+			// Handle date- and timestamp
+			break;
+		default:
+			break;
+	}
+
+	// Test answer
+	/*HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	input_report[1] = 1;
+	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,(uint8_t*)&input_report, 11);*/
+}
+
 
 /* USER CODE END 4 */
 
